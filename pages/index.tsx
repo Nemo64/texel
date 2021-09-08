@@ -15,13 +15,14 @@ export default function Home() {
         This is a tool that allows you to
         show <s title="comming soon™">and edit</s> translation files
         directly in your git repositories.
-        You don't need to install anything and all processing happens in your browser.
+        You don&apos;t need to install anything and all processing happens in your browser.
       </p>
 
       <h2>How do I use Texel?</h2>
       <p>
         Just login into your git provider of choice,
-        select the repository and you'll get a table of all "texel"'s in your project.
+        select the repository and you&apos;ll get a table
+        of all &quot;texel&quot;&apos;s in your project.
       </p>
 
       <Link href={`/auth/bitbucket`}>

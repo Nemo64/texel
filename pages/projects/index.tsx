@@ -36,7 +36,7 @@ export default function Projects() {
 
   return <>
     <ProjectBreadcrumb project={data?.project}/>
-    <input type="search" autoComplete={false} {...register('q')}/>
+    <input type="search" autoComplete={'no'} {...register('q')}/>
 
     {isValidating && <div>loading...</div>}
     {groupBy(filteredProjects, project => project.parent?.name)
