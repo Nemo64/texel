@@ -1,0 +1,77 @@
+.table {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table, .table tr {
+  border: none;
+  text-align: left;
+  vertical-align: top;
+  background-color: var(--background);
+}
+
+.table tr:hover {
+  --background: var(--highlight-bg);
+  --background-alpha: var(--highlight-bg-alpha);
+}
+
+tr.header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-fixed);
+  background-color: var(--background-alpha);
+  backdrop-filter: blur(.1em);
+}
+
+tr.header th, tr.header td {
+  padding-top: calc(.5em * var(--line-height));
+  border-bottom: 1px solid var(--border-color);
+}
+
+th.side {
+  position: sticky;
+  left: 0;
+  z-index: calc(var(--z-index-fixed) - 1);
+  background-color: var(--background-alpha);
+  backdrop-filter: blur(.1em);
+  border-right: 1px solid var(--border-color);
+}
+
+.key {
+  --end-width: 50%;
+  position: relative;
+  width: min(320px, 50vw);
+  height: calc(1em * var(--line-height));
+  white-space: nowrap;
+  text-align: center;
+  overflow: hidden;
+}
+
+.key:hover {
+  overflow: visible;
+}
+
+.key1 {
+  position: absolute;
+  right: var(--end-width);
+  text-align: right;
+  background-color: var(--background);
+  box-shadow: -1ch 0 1ch var(--background);
+}
+
+.key2 {
+  position: absolute;
+  left: calc(100% - var(--end-width));
+  text-align: left;
+  background-color: var(--background);
+  box-shadow: 1ch 0 1ch var(--background);
+}
+
+.value {
+  width: min(640px, 50vw);
+  white-space: pre-wrap;
+  text-align: left;
+  overflow: auto;
+}

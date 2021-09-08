@@ -1,0 +1,50 @@
+.content {
+  margin: 1em;
+}
+
+.button {
+  display: block;
+  padding: calc(.5em * var(--line-height));
+  width: 200px;
+  text-align: center;
+
+  --color: #0747a6;
+  color: white;
+  background-color: var(--color);
+  box-shadow: 0 0 0 .2em var(--background), 0 0 0 .3em var(--color);
+  margin: calc(.5em * var(--line-height)) .3em;
+  animation: zoomOut .2s 1 forwards;
+}
+
+.button:hover {
+  animation: zoomIn .2s 1 forwards;
+  /*transform: scale(1.01);*/
+}
+
+.bitbucket {
+  --color: #0747a6;
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: none;
+  }
+  30% {
+    transform: perspective(50px) rotateX(8deg) translateZ(1px);
+  }
+  100% {
+    transform: perspective(50px) rotateX(0deg) translateZ(5px);
+  }
+}
+
+@keyframes zoomOut {
+  0% {
+    transform: perspective(50px) rotateX(0deg) translateZ(5px);
+  }
+  30% {
+    transform: perspective(50px) rotateX(-8deg) translateZ(1px);
+  }
+  100% {
+    transform: none;
+  }
+}
