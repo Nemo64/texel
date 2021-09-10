@@ -1,14 +1,7 @@
 :root {
-  --background: rgb(255, 255, 255);
-  --background-alpha: rgba(255, 255, 255, .9);
-  --highlight-bg: rgb(238, 221, 221);
-  --highlight-bg-alpha: rgba(238, 221, 221, .9);
-  --border-color: rgba(221, 221, 221, .5);
-
-  --text-color: rgba(0, 0, 0, .7);
-  --text-color-bold: #000;
-  --primary: #963;
-  --line-height: 1.5;
+  --line-width: 640px;
+  --line-height: 1.5rem;
+  --padding: 0.75rem;
 
   --z-index-dropdown: 1000;
   --z-index-sticky: 1020;
@@ -18,20 +11,35 @@
   --z-index-modal: 1060;
   --z-index-popover: 1070;
   --z-index-tooltip: 1080;
+
+  --background: hsl(0, 0%, 100%);
+  --background-alpha: hsla(0, 0%, 100%, 0.8);
+  --highlight-bg: hsl(0, 33%, 90%);
+  --border-color: hsla(0, 0%, 87%, 0.5);
+  --shadow-color: hsla(0, 0%, 0%, 0.5);
+
+  --text-color: hsla(0, 0%, 0%, 0.7);
+  --text-color-bold: hsl(0, 0%, 0%);
+  --primary: hsl(30, 50%, 40%);
+  --primary-hightlight: hsl(30, 50%, 50%);
+  --danger: hsl(0, 50%, 40%);
+  --danger-highlight: hsl(0, 50%, 50%);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: rgb(38, 34, 34);
-    --background-alpha: rgba(38, 34, 34, .9);
-    --highlight-bg: rgb(85, 68, 68);
-    --highlight-bg-alpha: rgba(85, 68, 68, .9);
-    --border-color: rgba(68, 68, 68, .5);
+    --background: hsl(0, 6%, 14%);
+    --background-alpha: hsla(0, 6%, 14%, 0.9);
+    --highlight-bg: hsl(0, 11%, 30%);
+    --border-color: hsla(0, 0%, 27%, 0.5);
+    --shadow-color: hsla(0, 0%, 0%, 0.5);
 
-    --text-color: rgba(255, 255, 255, .7);
-    --text-color-bold: #fff;
-    --primary: #c96;
-    --line-height: 1.5;
+    --text-color: hsla(0, 0%, 100%, 0.7);
+    --text-color-bold: hsl(0, 0%, 100%);
+    --primary: hsl(30, 50%, 60%);
+    --primary-hightlight: hsl(30, 50%, 50%);
+    --danger: hsl(0, 50%, 60%);
+    --danger-highlight: hsl(0, 50%, 50%);
   }
 }
 
@@ -55,6 +63,11 @@ strong, b, th {
   color: var(--text-color-bold);
 }
 
+p, h1, h2, h3, h4, h5, h6 {
+  margin: var(--line-height) var(--padding) 0;
+  max-width: var(--line-width);
+}
+
 a {
   color: var(--primary);
   text-decoration: none;
@@ -64,14 +77,11 @@ a:hover {
   text-decoration: underline;
 }
 
-p {
-  width: 60ch;
-}
-
 input, textarea, select {
   background-color: var(--background);
   border: 1px solid var(--border-color);
-  padding: calc(var(--line-height) * .5em - 1px);
+  margin: var(--padding);
+  padding: calc(var(--padding) - 1px);
   color: var(--text-color);
 }
 

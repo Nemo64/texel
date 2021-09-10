@@ -1,3 +1,4 @@
+import Head from "next/head";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
 import {useAuth} from "../../src/auth";
@@ -47,6 +48,11 @@ export default function AuthBitbucket() {
   }
 
   return <>
+    <Head>
+      <title>Redirect ot bitbucket</title>
+      <link rel="dns-prefetch" href="https://bitbucket.org"/>
+      <link rel="dns-prefetch" href="https://api.bitbucket.org"/>
+    </Head>
     Brace yourself...
   </>;
 }

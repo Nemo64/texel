@@ -1,28 +1,26 @@
-.content {
-  margin: 1em;
-}
-
 .button {
   display: block;
-  padding: calc(.5em * var(--line-height));
+  padding: calc(var(--line-height) * 0.5);
   width: 200px;
   text-align: center;
 
-  --color: #0747a6;
+  --color: var(--primary);
+  --color-hover: var(--primary-hightlight);
   color: white;
   background-color: var(--color);
-  box-shadow: 0 0 0 .2em var(--background), 0 0 0 .3em var(--color);
-  margin: calc(.5em * var(--line-height)) .3em;
-  animation: zoomOut .2s 1 forwards;
+  box-shadow: 0 .5em 1em var(--shadow-color);
+  margin: var(--padding);
+  transition: .1s transform;
 }
 
 .button:hover {
-  animation: zoomIn .2s 1 forwards;
-  /*transform: scale(1.01);*/
+  --color: var(--color-hover);
+  transform: scale(1.01);
 }
 
 .bitbucket {
-  --color: #0747a6;
+  --color: hsl(216, 92%, 34%);
+  --color-hover: hsl(216, 92%, 44%);
 }
 
 @keyframes zoomIn {

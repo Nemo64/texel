@@ -1,53 +1,54 @@
+import Head from "next/head";
 import Link from "next/link";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
 import {useForm} from "react-hook-form";
-import useSWR, {SWRConfiguration} from 'swr';
-import {Auth, getDriver, useAuthOrRedirect} from "../../src/auth";
+import {useInView} from "react-intersection-observer";
+import {Auth, useAuthOrRedirect} from "../../src/auth";
 import {Project} from "../../src/drivers/types";
+import {useProjectContent, useProjectListing} from "../../src/loader";
 import {groupBy, sortFn} from "../../src/util";
-
-const loader: SWRConfiguration<{ childProjects: Project[], project?: Project }> = {
-  async fetcher(auth: Auth, id?: Project["id"]) {
-    const driver = getDriver(auth);
-
-    const [childProjects, project] = await Promise.all([
-      await driver.projects(id),
-      id ? await driver.project(id) : undefined,
-    ]);
-
-    return {childProjects, project};
-  },
-};
+import css from "./index.module.css";
 
 export default function Projects() {
   const router = useRouter();
-  const projectId = router.query.id || undefined;
-
   const {auth} = useAuthOrRedirect();
-  const {data, isValidating} = useSWR([auth, projectId], loader);
+  const {data, isValidating, error} = useProjectListing(auth, router.query.id as string);
 
   const {register, reset, watch} = useForm({defaultValues: {q: ''}});
-  useEffect(() => reset({q: ''}), [reset, projectId]);
-
+  useEffect(() => reset({q: ''}), [reset, router.query.id]);
   const query = watch('q');
+
+  if (!data) {
+    return <>
+      <Head>
+        <title>loading...</title>
+      </Head>
+      {error && <pre>{String(error)}</pre>}
+      {isValidating && <div>loading...</div>}
+    </>;
+  }
+
   const filteredProjects = (data?.childProjects ?? [])
     .filter(project => project.name.toLowerCase().includes(query.toLowerCase()));
 
   return <>
-    <ProjectBreadcrumb project={data?.project}/>
+    <Head>
+      <title>{data.project?.name ?? 'Project list'}</title>
+    </Head>
+
+    <ProjectBreadcrumb project={data.project}/>
     <input type="search" autoComplete={'no'} {...register('q')}/>
 
-    {isValidating && <div>loading...</div>}
     {groupBy(filteredProjects, project => project.parent?.name)
       .sort(sortFn(([headline]) => headline ?? ''))
       .map(([headline, subProjects]) => (
         <div key={headline}>
           <h2>{headline}</h2>
-          <ul>
+          <ul className={css.list}>
             {subProjects.map(project => (
               <li key={project.id}>
-                <ProjectItem project={project}/>
+                <ProjectItem auth={auth} project={project}/>
               </li>
             ))}
           </ul>
@@ -78,19 +79,36 @@ export function ProjectBreadcrumb({project}: { project?: Project }) {
   </div>;
 }
 
-function ProjectItem({project}: { project: Project }) {
-  if (project.leaf) {
+function ProjectItem({project, auth}: { project: Project, auth: Auth | undefined }) {
+  if (!project.leaf) {
     return (
-      <Link
-        href={`/projects/table?id=${encodeURIComponent(project.id)}`}>
-        {project.name}
+      <Link href={`/projects?id=${encodeURIComponent(project.id)}`}>
+        <a className={css.item}>
+          <span className={css.name}>{project.name}</span>
+        </a>
       </Link>
     );
   }
 
   return (
-    <Link href={`/projects?id=${encodeURIComponent(project.id)}`}>
-      {project.name}
+    <Link href={`/projects/table?id=${encodeURIComponent(project.id)}`}>
+      <a className={css.item}>
+        <span className={css.name}>{project.name}</span>
+        <ProjectLeafDetails project={project} auth={auth}/>
+      </a>
     </Link>
   );
+}
+
+function ProjectLeafDetails({project, auth}: { project: Project, auth: Auth | undefined }) {
+  const {ref, inView} = useInView({delay: 1000, triggerOnce: true});
+  const {data, isValidating} = useProjectContent(auth, inView ? project.id : undefined);
+
+  return <span className={css.progress} ref={ref}>
+    {!data && isValidating && 'loading...'}
+    {!data && !isValidating && 'no data'}
+    {data && `${data.groups.length} keys : ${data.locales.map(locale => (
+      `${locale} ${(data.groups.filter(group => group.variants[locale]).length / data.groups.length * 100).toFixed(1)}%`
+    )).join(', ')}`}
+  </span>;
 }

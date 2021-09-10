@@ -1,0 +1,31 @@
+.list {
+  list-style: none;
+  margin: var(--line-height) 0;
+  padding: 0;
+}
+
+.list > li + li {
+  border-top: 1px solid var(--border-color);
+}
+
+.item {
+  text-decoration: none;
+  display: block;
+  padding: 0 var(--padding);
+}
+
+.item:hover {
+  text-decoration: none;
+  background-color: var(--highlight-bg);
+}
+
+.name {
+  display: block;
+  height: var(--line-height);
+}
+
+.progress {
+  height: var(--line-height);
+  color: var(--text-color);
+  font-size: 80%;
+}

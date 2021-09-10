@@ -2,76 +2,106 @@
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
+  margin: var(--padding) 0;
 }
 
 .table, .table tr {
   border: none;
   text-align: left;
   vertical-align: top;
+}
+
+.table th, .table td {
+  --column-width: min(480px, 50vw);
+  min-width: var(--column-width);
+  width: var(--column-width);
+  max-width: var(--column-width);
+  padding-left: var(--padding);
   background-color: var(--background);
 }
 
-.table tr:hover {
+.table tbody tr:hover {
   --background: var(--highlight-bg);
-  --background-alpha: var(--highlight-bg-alpha);
+  --background-alpha: var(--highlight-bg);
 }
 
 tr.header {
-  position: -webkit-sticky;
+  --background: var(--background-alpha);
   position: sticky;
   top: 0;
   z-index: var(--z-index-fixed);
-  background-color: var(--background-alpha);
-  backdrop-filter: blur(.1em);
 }
 
-tr.header th, tr.header td {
-  padding-top: calc(.5em * var(--line-height));
-  border-bottom: 1px solid var(--border-color);
+tr.header th {
+  padding-top: calc(var(--line-height) * 0.5);
+  border-bottom: 2px solid var(--border-color);
 }
 
 th.side {
+  --background: var(--background-alpha);
+  --column-width: min(200px, 40vw);
   position: sticky;
   left: 0;
   z-index: calc(var(--z-index-fixed) - 1);
-  background-color: var(--background-alpha);
-  backdrop-filter: blur(.1em);
-  border-right: 1px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
+}
+
+@media (max-width: 639px) {
+  th.side {
+    left: -25vw;
+    transition: left .2s;
+  }
+  th.side:hover {
+    left: 0;
+  }
 }
 
 .key {
   --end-width: 50%;
-  position: relative;
-  width: min(320px, 50vw);
-  height: calc(1em * var(--line-height));
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   white-space: nowrap;
   text-align: center;
   overflow: hidden;
 }
 
-.key:hover {
-  overflow: visible;
-}
-
 .key1 {
   position: absolute;
+  height: 100%;
   right: var(--end-width);
   text-align: right;
-  background-color: var(--background);
-  box-shadow: -1ch 0 1ch var(--background);
 }
 
 .key2 {
   position: absolute;
+  min-width: var(--end-width);
+  height: 100%;
   left: calc(100% - var(--end-width));
   text-align: left;
+}
+
+.table th:hover {
+  z-index: var(--z-index-sticky);
+}
+
+.table th:hover .key {
+  overflow: visible;
+}
+
+.table th:hover .key2 {
   background-color: var(--background);
-  box-shadow: 1ch 0 1ch var(--background);
+  box-shadow: 1rem 0 1rem var(--background);
 }
 
 .value {
-  width: min(640px, 50vw);
   white-space: pre-wrap;
   text-align: left;
   overflow: auto;
+}
+
+.missing {
+  background-color: var(--danger);
 }

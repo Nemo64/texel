@@ -61,26 +61,27 @@ export class BitbucketDriver implements TexelDriver {
   }
 
   private async texelGroups(branchId: Project["id"]): Promise<TexelGroup[]> {
-    const branch = await this.branch(branchId);
+    const {target} = await this.branch(branchId);
 
     const result = new Map<string, TexelGroup>();
     const promises = [] as Promise<void>[];
 
-    for await (const filePage of this.files(branch.target.repository.full_name, branch.target.hash)) {
-      for (const file of filePage) {
-        if (!isL10nFile(file.path)) {
+    for await (const filePage of this.files(target.repository.full_name, target.hash)) {
+      for (const {path} of filePage) {
+        if (!isL10nFile(path)) {
           continue;
         }
 
+        const publicUrl = `https://bitbucket.org/${target.repository.full_name}/src/${target.hash}/${path}`;
         promises.push((async () => {
-          const content = await this.content(branch.target.repository.full_name, branch.target.hash, file.path);
-          const {domain, locale} = getL10nFileInfo(file.path);
-          for (const [key, value] of parseL10nFile(file.path, content)) {
+          const content = await this.content(target.repository.full_name, target.hash, path);
+          const {domain, locale} = getL10nFileInfo(path);
+          for (const [key, value] of parseL10nFile(path, content)) {
             const fullKey = `${domain}/${key}`;
 
             let group = result.get(fullKey);
             if (group === undefined) {
-              group = {key, domain, variants: {}};
+              group = {key, path, publicUrl, domain, variants: {}};
               result.set(fullKey, group);
             }
 

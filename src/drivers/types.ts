@@ -23,7 +23,9 @@ export interface TexelHistory {
  */
 export interface TexelGroup {
   key: string;
+  path: string;
   domain?: string;
+  publicUrl?: string;
   variants: Record<string, Texel>;
 }
 

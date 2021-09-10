@@ -5,7 +5,7 @@ import css from "./index.module.css";
 export default function Home() {
   return <>
     <Head>
-      <title>Select a repository</title>
+      <title>Texel - Text element editor</title>
     </Head>
     <div className={css.content}>
       <h1><strong>Texel</strong> - <b>Tex</b>t <b>El</b>ement editor</h1>
@@ -35,7 +35,12 @@ export default function Home() {
       <p>
         Texel will use your git providers api (directly from your browser)
         and search for files based on common naming patterns.
+        These naming patterns are currently:
       </p>
+      <ul>
+        <li><code>{'[locale]/[domain].{json,yaml}'}</code></li>
+        <li><code>{'[domain].[locale].{json,yaml}'}</code></li>
+      </ul>
 
     </div>
   </>;
