@@ -3,7 +3,7 @@ import {msg} from "../util";
 import {Project, TexelDriver, TexelGroup} from "./types";
 
 const REPOSITORY_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))$/;
-const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branch>[^/]+)$/;
+const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branch>.+)$/;
 
 /**
  * Driver that uses the bitbucket api as backend.
@@ -11,6 +11,8 @@ const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branc
  * To avoid preflight request, i use the `access_token` parameter whenever possible.
  * {@see https://web.dev/cross-origin-resource-sharing/#preflight-requests-for-complex-http-calls}
  * {@see https://developer.atlassian.com/bitbucket/api/2/reference/meta/authentication}
+ *
+ * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/
  */
 export class BitbucketDriver implements TexelDriver {
   constructor(
@@ -20,23 +22,31 @@ export class BitbucketDriver implements TexelDriver {
 
   project(id: Project["id"]): Promise<Project> {
     if (REPOSITORY_ID.test(id)) {
-      return this.repository(id);
+      return this.repository(id).then(repositoryToProject);
     }
 
     if (BRANCH_ID.test(id)) {
-      return this.branch(id);
+      return this.branch(id).then(refToProject);
     }
 
     throw new Error(msg`Can't parse id ${id}`);
   }
 
-  projects(id?: Project["id"]): Promise<Project[]> {
+  async projects(id?: Project["id"]): Promise<Project[]> {
     if (!id) {
-      return this.repositories();
+      const repositories = [] as Project[];
+      for await(const repositoryPage of this.repositories()) {
+        repositories.push(...repositoryPage.map(repositoryToProject));
+      }
+      return repositories.reverse();
     }
 
     if (REPOSITORY_ID.test(id)) {
-      return this.branches(id);
+      const branches = [] as Project[];
+      for await (const branchPage of this.branches(id)) {
+        branches.push(...branchPage.map(refToProject));
+      }
+      return branches.reverse();
     }
 
     throw new Error(msg`Can't parse id ${id}`);
@@ -50,48 +60,20 @@ export class BitbucketDriver implements TexelDriver {
     return Promise.reject(new Error("not implemented yet"));
   }
 
-  /**
-   * Builds texel groups in a branch name.
-   */
   private async texelGroups(branchId: Project["id"]): Promise<TexelGroup[]> {
-    const match = branchId.match(BRANCH_ID);
-    if (!match || !match.groups) {
-      throw new Error("could not split the id into repository and branch");
-    }
-
-    const {repository: repositoryName, branch: branchName} = match.groups;
-    const branch: Ref = await request(
-      `https://api.bitbucket.org/2.0/repositories/${repositoryName}/refs/branches/${branchName}?${new URLSearchParams({
-        fields: REF_FIELDS.join(','),
-        access_token: this.token,
-      })}`,
-    );
+    const branch = await this.branch(branchId);
 
     const result = new Map<string, TexelGroup>();
     const promises = [] as Promise<void>[];
 
-    for await (const filePage of this.files(repositoryName, branch.target.hash)) {
+    for await (const filePage of this.files(branch.target.repository.full_name, branch.target.hash)) {
       for (const file of filePage) {
         if (!isL10nFile(file.path)) {
           continue;
         }
 
         promises.push((async () => {
-          // const {values: fileHistory} = await request<{ values: HistoryEntry[] }>(
-          //   `https://api.bitbucket.org/2.0/repositories/${repositoryName}/filehistory/${branch.target.hash}/${file.path}?${new URLSearchParams({
-          //     pagelen: '20',
-          //     fields: HISTORY_ENTRY_FIELDS.map(field => `values.${field}`).join(','),
-          //     access_token: this.token,
-          //   })}`,
-          // );
-
-          const content: string = await request(
-            `https://api.bitbucket.org/2.0/repositories/${repositoryName}/src/${branch.target.hash}/${file.path}?${new URLSearchParams({
-              access_token: this.token,
-            })}`,
-            {headers: {accept: "text/*; charset=utf-8"}},
-          );
-
+          const content = await this.content(branch.target.repository.full_name, branch.target.hash, file.path);
           const {domain, locale} = getL10nFileInfo(file.path);
           for (const [key, value] of parseL10nFile(file.path, content)) {
             const fullKey = `${domain}/${key}`;
@@ -118,6 +100,22 @@ export class BitbucketDriver implements TexelDriver {
 
   /**
    * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/src
+   */
+  private content(repositoryId: string, commitHash: string, path: string): Promise<string> {
+    return request(
+      `https://api.bitbucket.org/2.0/repositories/${repositoryId}/src/${commitHash}/${path}?${new URLSearchParams({
+        access_token: this.token,
+      })}`,
+      {
+        headers: {
+          accept: "text/*; charset=utf-8",
+        },
+      },
+    );
+  }
+
+  /**
+   * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/src
    * @see https://community.atlassian.com/t5/Bitbucket-questions/Is-there-a-way-to-list-all-the-files-in-the-repository-using-the/qaq-p/750856
    */
   private files(repositoryId: string, commitHash: string, path = ''): Paged<TreeEntry> {
@@ -132,70 +130,56 @@ export class BitbucketDriver implements TexelDriver {
     );
   }
 
-  private async branches(repositoryId: string): Promise<Project[]> {
-    const branchPager: Paged<Ref> = pager(
+  private branches(repositoryId: string): Paged<Ref> {
+    if (!REPOSITORY_ID.test(repositoryId)) {
+      throw new Error(msg`Repository id ${repositoryId} is not valid`);
+    }
+
+    return pager(
       `https://api.bitbucket.org/2.0/repositories/${repositoryId}/refs/branches?${new URLSearchParams({
         pagelen: '100',
         fields: `next,${REF_FIELDS.map(field => `values.${field}`).join(',')}`,
         access_token: this.token,
       })}`,
     );
-
-    const result = [] as Project[];
-    for await (const branchPage of branchPager) {
-      for (const branch of branchPage) {
-        result.push(refToProject(branch));
-      }
-    }
-
-    return result;
   }
 
-  private async branch(branchId: string): Promise<Project> {
+  private branch(branchId: string): Promise<Ref> {
     const match = BRANCH_ID.exec(branchId);
     if (!match || !match.groups) {
       throw new Error(msg`Branch id ${branchId} is not valid`);
     }
 
-    const branch: Ref = await request(
+    return request(
       `https://api.bitbucket.org/2.0/repositories/${match.groups.repository}/refs/branches/${match.groups.branch}?${new URLSearchParams({
         fields: REF_FIELDS.join(','),
         access_token: this.token,
       })}`,
     );
-
-    return refToProject(branch);
   }
 
-  private async repositories(): Promise<Project[]> {
-    const repositoryPager: Paged<Repository> = pager(
+  private repositories(): Paged<Repository> {
+    return pager(
       `https://api.bitbucket.org/2.0/repositories?${new URLSearchParams({
-        role: 'contributor',
+        role: 'member',
         pagelen: '100',
         fields: `next,${REPOSITORY_FIELDS.map(field => `values.${field}`).join(',')}`,
         access_token: this.token,
       })}`,
     );
-
-    const result = [] as Project[];
-    for await (const repositoryPage of repositoryPager) {
-      for (const repository of repositoryPage) {
-        result.push(repositoryToProject(repository));
-      }
-    }
-
-    return result;
   }
 
-  private async repository(repositoryId: string): Promise<Project> {
-    const repository: Repository = await request(
+  private repository(repositoryId: string): Promise<Repository> {
+    if (!REPOSITORY_ID.test(repositoryId)) {
+      throw new Error(msg`Repository id ${repositoryId} is not valid`);
+    }
+
+    return request(
       `https://api.bitbucket.org/2.0/repositories/${repositoryId}?${new URLSearchParams({
         fields: REPOSITORY_FIELDS.join(','),
         access_token: this.token,
       })}`,
     );
-
-    return repositoryToProject(repository);
   }
 }
 
@@ -216,23 +200,36 @@ function repositoryToProject(repository: Repository): Project {
   };
 }
 
-/**
- * This is a subset of {@see RequestInit}.
- */
-interface RequestOptions {
-  headers: Record<string, string>;
+const requestCache = new Map<string, Promise<any>>();
+
+function request(url: string, init: RequestInit = {}): Promise<any> {
+  if (init.method && init.method.toUpperCase() !== 'GET') {
+    return createRequest(url, init);
+  }
+
+  let promise = requestCache.get(url);
+  if (promise === undefined) {
+    promise = createRequest(url, init);
+    requestCache.set(url, promise);
+    setTimeout(() => requestCache.delete(url), 5000);
+  }
+
+  return promise;
 }
 
-/**
- * Requests a single resource.
- */
-async function request(url: string, init: RequestOptions = {headers: {}}): Promise<any> {
-  init.headers.accept ??= "application/json; charset=utf-8";
+async function createRequest(url: string, init: RequestInit = {}): Promise<any> {
+  if (!(init.headers instanceof Headers)) {
+    init.headers = new Headers(init.headers);
+  }
+
+  if (!init.headers.has('accept')) {
+    init.headers.set('accept', 'application/json; charset=utf-8');
+  }
 
   const response = await fetch(url, init);
   switch (response.status) {
     case 200:
-      if (init.headers.accept === 'application/json; charset=utf-8') {
+      if (init.headers.get('accept')?.startsWith('application/json')) {
         return await response.json();
       } else {
         return await response.text();
@@ -248,7 +245,7 @@ type Paged<T> = AsyncIterable<T[]>;
  * Iterates a paged result.
  * @see https://developer.atlassian.com/bitbucket/api/2/reference/meta/pagination
  */
-async function* pager<T>(url: string, init?: RequestOptions): Paged<T> {
+async function* pager<T>(url: string, init?: RequestInit): Paged<T> {
   type PagedResponse = { values: T[], next?: string };
 
   let page = await request(url, init) as PagedResponse;
