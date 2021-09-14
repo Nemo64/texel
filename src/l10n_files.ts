@@ -4,7 +4,7 @@ import yaml from "js-yaml";
 export const L10N_FILE_EXTENSIONS = ['yml', 'yaml', 'json'];
 
 const LOCALE_STR = '[a-z]{2}([_-][A-Z]{2})?';
-const FILE_STR = `(/(?<l1>${LOCALE_STR})/(?<d1>[^/]+)|/(?<d2>[^/]+)\\.(?<l2>${LOCALE_STR}))\\.(?<ext>${L10N_FILE_EXTENSIONS.join('|')})`;
+const FILE_STR = `(^|/)((?<l1>${LOCALE_STR})/(?<d1>[^/]+)|(?<d2>[^/]+)\\.(?<l2>${LOCALE_STR}))\\.(?<ext>${L10N_FILE_EXTENSIONS.join('|')})`;
 const FILE_EXP = new RegExp(FILE_STR, 'i');
 
 /**
