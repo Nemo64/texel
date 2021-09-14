@@ -7,6 +7,7 @@ import '../styles/globals.css';
 export default function MyApp({Component, pageProps}: AppProps) {
   return <>
     <Head>
+      <title>Texel</title>
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
     <div>

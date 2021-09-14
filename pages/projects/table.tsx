@@ -1,5 +1,6 @@
 import Head from "next/head";
 import {useRouter} from "next/router";
+import {Fragment, useLayoutEffect, useRef} from "react";
 import {useAuthOrRedirect} from "../../src/auth";
 import {useProjectContent} from "../../src/loader";
 import {groupBy, sortFn} from "../../src/util";
@@ -31,9 +32,9 @@ export default function ProjectTable() {
 
     <ProjectBreadcrumb project={data.project}/>
 
-    {domains.map(([domain, groups]) => <>
+    {domains.map(([domain, groups]) => <Fragment key={domain}>
 
-      <h2><a href={groups[0].publicUrl} target="_blank" rel="noopener">{groups[0].path}</a></h2>
+      <h2><a href={groups[0].publicUrl} target="_blank" rel="noreferrer">{groups[0].path}</a></h2>
 
       <table className={css.table} key={domain}>
 
@@ -48,7 +49,7 @@ export default function ProjectTable() {
 
         <tbody>
         {groups.sort(sortFn(group => group.key)).map(group => (
-          <tr key={`${group.domain} ${group.key}`}>
+          <tr key={group.key}>
             <th className={css.side}>
               <Key value={group.key}/>
             </th>
@@ -66,7 +67,7 @@ export default function ProjectTable() {
         </tbody>
 
       </table>
-    </>)}
+    </Fragment>)}
   </>;
 }
 
@@ -84,3 +85,24 @@ function Key({value}: { value: string }) {
     <span className={css.key2}>{suffix}</span>
   </div>;
 }
+
+function Value<K extends keyof JSX.IntrinsicElements>({el: El, defaultValue, ...props}: { el: K, defaultValue?: string } & JSX.IntrinsicElements[K]) {
+  const ref = useRef<HTMLElement>();
+  useLayoutEffect(() => {
+    if (ref.current) {
+      ref.current.textContent = defaultValue ?? null;
+    }
+  }, [ref, defaultValue]);
+
+  // @ts-ignore
+  return <El {...props} ref={ref} contentEditable={true}/>;
+}
+
+// function Value({defaultValue, ...props}: {defaultValue?: string, [key: string]: any}) {
+//   const [rows, setRows] = useState(defaultValue?.split("\n").length);
+//   props.onInput = (e: SyntheticEvent<HTMLTextAreaElement>) => {
+//     setRows(e.currentTarget.value.split("\n").length);
+//   }
+//
+//   return <textarea {...props} defaultValue={defaultValue} rows={rows} />
+// }

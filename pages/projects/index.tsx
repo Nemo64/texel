@@ -43,8 +43,8 @@ export default function Projects() {
     {groupBy(filteredProjects, project => project.parent?.name)
       .sort(sortFn(([headline]) => headline ?? ''))
       .map(([headline, subProjects]) => (
-        <div key={headline}>
-          <h2>{headline}</h2>
+        <div key={headline ?? ''}>
+          {headline && <h2>{headline}</h2>}
           <ul className={css.list}>
             {subProjects.map(project => (
               <li key={project.id}>

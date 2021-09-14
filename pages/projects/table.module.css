@@ -16,6 +16,7 @@
   min-width: var(--column-width);
   width: var(--column-width);
   max-width: var(--column-width);
+  min-height: var(--line-height);
   padding-left: var(--padding);
   background-color: var(--background);
 }
@@ -29,11 +30,10 @@ tr.header {
   --background: var(--background-alpha);
   position: sticky;
   top: 0;
-  z-index: var(--z-index-fixed);
+  z-index: var(--z-index-sticky);
 }
 
 tr.header th {
-  padding-top: calc(var(--line-height) * 0.5);
   border-bottom: 2px solid var(--border-color);
 }
 
@@ -42,7 +42,7 @@ th.side {
   --column-width: min(200px, 40vw);
   position: sticky;
   left: 0;
-  z-index: calc(var(--z-index-fixed) - 1);
+  z-index: calc(var(--z-index-sticky) - 1);
   border-right: 2px solid var(--border-color);
 }
 
