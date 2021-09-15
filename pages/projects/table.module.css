@@ -1,4 +1,7 @@
 .table {
+  --column-width-side: min(240px, 40vw);
+  --column-width: min(480px, 60vw);
+
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -12,7 +15,6 @@
 }
 
 .table th, .table td {
-  --column-width: min(480px, 50vw);
   min-width: var(--column-width);
   width: var(--column-width);
   max-width: var(--column-width);
@@ -22,8 +24,8 @@
 }
 
 .table tbody tr:hover {
-  --background: var(--highlight-bg);
-  --background-alpha: var(--highlight-bg);
+  --background: var(--primary-background);
+  --background-alpha: var(--primary-background);
 }
 
 tr.header {
@@ -39,7 +41,7 @@ tr.header th {
 
 th.side {
   --background: var(--background-alpha);
-  --column-width: min(200px, 40vw);
+  --column-width: var(--column-width-side);
   position: sticky;
   left: 0;
   z-index: calc(var(--z-index-sticky) - 1);
@@ -96,12 +98,21 @@ th.side {
   box-shadow: 1rem 0 1rem var(--background);
 }
 
-.value {
+td.value {
+  position: relative;
   white-space: pre-wrap;
   text-align: left;
-  overflow: auto;
+  padding: 0;
 }
 
-.missing {
-  background-color: var(--danger);
+td.value:focus-within {
+  z-index: var(--z-index-sticky);
+}
+
+.value.missing {
+  background-color: var(--danger-background);
+}
+
+.value.changed {
+  background-color: var(--info-background);
 }

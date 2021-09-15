@@ -1,32 +1,22 @@
 /**
- * This is the smallest text element.
- * It has a language and an author.
+ * A subset of a texel that identifies it.
  */
-export interface Texel {
-  locale: string;
-  value: string;
-  history: TexelHistory[]
-}
-
-/**
- * A history entry for a {@see Texel}.
- */
-export interface TexelHistory {
-  value: string;
-  date: Date;
-  author: string;
-  message: string;
-}
-
-/**
- * All locales of a {@see Texel}.
- */
-export interface TexelGroup {
+export interface TexelId {
+  domain: string;
   key: string;
-  path: string;
-  domain?: string;
+  locale: string;
+}
+
+/**
+ * This is the most basic text element.
+ */
+export interface Texel extends TexelId {
+  domain: string;
   publicUrl?: string;
-  variants: Record<string, Texel>;
+  path?: string;
+  key: string;
+  locale: string;
+  value: string | undefined;
 }
 
 /**
@@ -38,6 +28,15 @@ export interface Project {
   name: string;
   parent?: Project;
   leaf: boolean;
+}
+
+/**
+ * Compares 2 texels or texel id's
+ */
+export function sameTexelId(t1: TexelId, t2: TexelId) {
+  return t1.key === t2.key
+    && t1.domain === t2.domain
+    && t1.locale === t2.locale;
 }
 
 export interface TexelDriver {
@@ -54,11 +53,11 @@ export interface TexelDriver {
   /**
    * List all TexelGroups in the provided branch.
    */
-  list(id: Project["id"]): Promise<TexelGroup[]>;
+  list(id: Project["id"]): Promise<Texel[]>;
 
   /**
    * Update the provided texel groups.
    * If the variants of a TexelGroup are empty, then this texel group will be deleted.
    */
-  update(groups: Iterable<TexelGroup>): Promise<void>;
+  update(id: Project["id"], groups: Texel[]): Promise<void>;
 }

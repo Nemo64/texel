@@ -1,14 +1,15 @@
 import type {AppProps} from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
+import {Button} from "../components/button";
 import {useAuth} from "../src/auth";
 import '../styles/globals.css';
 
 export default function MyApp({Component, pageProps}: AppProps) {
   return <>
     <Head>
-      <title>Texel</title>
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      <title>Texel Editor</title>
+      <meta name="viewport" content="initial-scale=1.0, width=device-width"/>
     </Head>
     <div>
       <LoginStatus/>
@@ -30,6 +31,6 @@ function LoginStatus() {
 
   return <>
     Logged in with {auth?.type}.
-    <button type="button" onClick={logout}>Logout</button>
+    <Button onClick={logout}>Logout</Button>
   </>;
 }

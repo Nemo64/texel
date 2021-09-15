@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import Link from 'next/link';
+import {Button} from "../components/button";
 import css from "./index.module.css";
 
 export default function Home() {
@@ -25,11 +25,9 @@ export default function Home() {
         of all &quot;texel&quot;&apos;s in your project.
       </p>
 
-      <Link href={`/auth/bitbucket`}>
-        <a className={`${css.button} ${css.bitbucket}`}>
-          Login with Bitbucket
-        </a>
-      </Link>
+      <Button href={`/auth/bitbucket`} className={css.bitbucket}>
+        Login with Bitbucket
+      </Button>
 
       <h2>How does it work?</h2>
       <p>

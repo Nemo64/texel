@@ -7,19 +7,19 @@ import {useInView} from "react-intersection-observer";
 import {Auth, useAuthOrRedirect} from "../../src/auth";
 import {Project} from "../../src/drivers/types";
 import {useProjectContent, useProjectListing} from "../../src/loader";
-import {groupBy, sortFn} from "../../src/util";
+import {groupBy, sortFn, uniqueFn} from "../../src/util";
 import css from "./index.module.css";
 
 export default function Projects() {
   const router = useRouter();
   const {auth} = useAuthOrRedirect();
-  const {data, isValidating, error} = useProjectListing(auth, router.query.id as string);
+  const {project, childProjects, loading, isValidating, error} = useProjectListing(auth, router.query.id as string);
 
   const {register, reset, watch} = useForm({defaultValues: {q: ''}});
   useEffect(() => reset({q: ''}), [reset, router.query.id]);
   const query = watch('q');
 
-  if (!data) {
+  if (loading) {
     return <>
       <Head>
         <title>loading...</title>
@@ -29,15 +29,15 @@ export default function Projects() {
     </>;
   }
 
-  const filteredProjects = (data?.childProjects ?? [])
+  const filteredProjects = childProjects
     .filter(project => project.name.toLowerCase().includes(query.toLowerCase()));
 
   return <>
     <Head>
-      <title>{data.project?.name ?? 'Project list'}</title>
+      <title>{project?.name ?? 'Project list'}</title>
     </Head>
 
-    <ProjectBreadcrumb project={data.project}/>
+    <ProjectBreadcrumb project={project}/>
     <input type="search" autoComplete={'no'} {...register('q')}/>
 
     {groupBy(filteredProjects, project => project.parent?.name)
@@ -102,13 +102,20 @@ function ProjectItem({project, auth}: { project: Project, auth: Auth | undefined
 
 function ProjectLeafDetails({project, auth}: { project: Project, auth: Auth | undefined }) {
   const {ref, inView} = useInView({delay: 1000, triggerOnce: true});
-  const {data, isValidating} = useProjectContent(auth, inView ? project.id : undefined);
+  const {loading, texels, isValidating} = useProjectContent(auth, inView ? project.id : undefined);
+
+  if (loading) {
+    return <span className={css.progress} ref={ref}>
+      {isValidating ? 'loading...' : 'no data'}
+    </span>;
+  }
+
+  const keys = texels.map(texel => texel.key).filter(uniqueFn());
+  const keysByLocale = groupBy(texels, texel => texel.locale);
 
   return <span className={css.progress} ref={ref}>
-    {!data && isValidating && 'loading...'}
-    {!data && !isValidating && 'no data'}
-    {data && `${data.groups.length} keys : ${data.locales.map(locale => (
-      `${locale} ${(data.groups.filter(group => group.variants[locale]).length / data.groups.length * 100).toFixed(1)}%`
-    )).join(', ')}`}
+    {`${keys.length} keys : ${keysByLocale.map(([locale, texels]) =>
+      `${locale} ${(texels.length / keys.length * 100).toFixed(1)}%`,
+    ).join(', ')}`}
   </span>;
 }

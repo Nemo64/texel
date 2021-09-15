@@ -7,6 +7,8 @@
  * console.log(`something happened with ${JSON.stringify(obj)}`);
  * ```
  */
+import {useCallback, useState} from "react";
+
 export function msg(strings: TemplateStringsArray, ...parameters: any[]) {
   const result = [strings[0]];
 
@@ -28,6 +30,32 @@ export function wrapError(e: any, message: string): { message: string } {
   } else {
     return new Error(`${message}\n${JSON.stringify(e)}`);
   }
+}
+
+/**
+ * Wraps a boolean state variable.
+ * Instead of the normal setter, a toggler is returned.
+ */
+export function useBooleanState(init: boolean): [boolean, () => void, (state: boolean) => void] {
+  const [state, setState] = useState(init);
+  const toggle = useCallback(() => setState(!state), [state, setState]);
+  return [state, toggle, setState];
+}
+
+/**
+ * This is meant to parse time values from css.
+ * It always returns milliseconds
+ */
+export function parseMS(value: string) {
+  if (/^[.\d]+s$/.test(value)) {
+    return parseFloat(value) * 1000;
+  }
+
+  if (/^[.\d]+ms$/.test(value)) {
+    return parseFloat(value);
+  }
+
+  throw new Error(msg`Can't parse time string ${value}`);
 }
 
 type ArrayFn<V, R> = (value: V, index: number, array: V[]) => R;
@@ -88,5 +116,5 @@ export function groupFn<K, V>(predicate: ArrayFn<V, K>) {
  * @see groupFn
  */
 export function groupBy<K, V>(array: V[], predicate: ArrayFn<V, K>): [K, V[]][] {
-  return Array.from(array.reduce(groupFn(predicate), new Map))
+  return Array.from(array.reduce(groupFn(predicate), new Map));
 }

@@ -1,6 +1,6 @@
 import {getL10nFileInfo, isL10nFile, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
 import {msg} from "../util";
-import {Project, TexelDriver, TexelGroup} from "./types";
+import {Project, Texel, TexelDriver} from "./types";
 
 const REPOSITORY_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))$/;
 const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branch>.+)$/;
@@ -52,19 +52,18 @@ export class BitbucketDriver implements TexelDriver {
     throw new Error(msg`Can't parse id ${id}`);
   }
 
-  list(id: Project["id"]): Promise<TexelGroup[]> {
-    return this.texelGroups(id);
+  list(id: Project["id"]): Promise<Texel[]> {
+    return this.texels(id);
   }
 
-  update(groups: Iterable<TexelGroup>): Promise<void> {
+  update(id: Project["id"], groups: Texel[]): Promise<void> {
     return Promise.reject(new Error("not implemented yet"));
   }
 
-  private async texelGroups(branchId: Project["id"]): Promise<TexelGroup[]> {
+  private async texels(branchId: Project["id"]): Promise<Texel[]> {
     const {target} = await this.branch(branchId);
 
-    const result = new Map<string, TexelGroup>();
-    const promises = [] as Promise<void>[];
+    const promises = [] as Promise<Texel[]>[];
 
     for await (const filePage of this.files(target.repository.full_name, target.hash)) {
       for (const {path} of filePage) {
@@ -76,27 +75,13 @@ export class BitbucketDriver implements TexelDriver {
         promises.push((async () => {
           const content = await this.content(target.repository.full_name, target.hash, path);
           const {domain, locale} = getL10nFileInfo(path);
-          for (const [key, value] of parseL10nFile(path, content)) {
-            const fullKey = `${domain}/${key}`;
-
-            let group = result.get(fullKey);
-            if (group === undefined) {
-              group = {key, path, publicUrl, domain, variants: {}};
-              result.set(fullKey, group);
-            }
-
-            let variant = group.variants[locale];
-            if (variant === undefined) {
-              variant = {locale, value, history: []};
-              group.variants[locale] = variant;
-            }
-          }
+          return parseL10nFile(path, content)
+            .map(([key, value]) => ({key, path, publicUrl, domain, locale, value}))
         })());
       }
     }
 
-    await Promise.all(promises);
-    return Array.from(result.values());
+    return (await Promise.all(promises)).flat();
   }
 
   /**

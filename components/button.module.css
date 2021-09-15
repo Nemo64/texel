@@ -1,0 +1,45 @@
+.base {
+  display: inline-block;
+  padding: calc(var(--line-height) * 0.5);
+  margin: var(--padding);
+  border: 0;
+
+  text-align: center;
+  cursor: pointer;
+
+  --color: var(--primary);
+  --color-hover: var(--primary-highlight);
+  --color-disabled: var(--primary-background);
+  color: var(--primary-text);
+  background-color: var(--color);
+  box-shadow: 0 .5em 1em var(--shadow-color);
+}
+
+.base:disabled {
+  cursor: not-allowed;
+  box-shadow: 0 .1em .5em var(--shadow-color);
+  opacity: .6;
+  filter: saturate(50%);
+}
+
+.base:hover:not(:disabled) {
+  --color: var(--color-hover);
+}
+
+.toolbar {
+  position: sticky;
+  z-index: var(--z-index-sticky);
+  bottom: 0;
+  border-top: 1px solid var(--border-color);
+
+  display: flex;
+  flex-direction: row;
+
+  background: var(--background-alpha);
+  backdrop-filter: blur(.1rem) saturate(200%);
+}
+
+.toolbar > .base {
+  margin: 0;
+  box-shadow: none;
+}

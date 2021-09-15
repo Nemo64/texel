@@ -1,0 +1,117 @@
+@value hideDelay .2s;
+
+/* required in js */
+
+.overlay {
+  position: fixed;
+  z-index: var(--z-index-modal);
+  inset: 0;
+  background-color: hsla(0, 0%, 10%, 0.9);
+  opacity: 0;
+}
+
+.overlayOpen {
+  transition: opacity .2s;
+  opacity: 1
+}
+
+.overlayClosing {
+  transition: opacity hideDelay;
+  opacity: 0;
+}
+
+@supports (backdrop-filter: blur(.1rem) saturate(150%)) {
+  .overlay {
+    background-color: hsla(0, 0%, 10%, 0.6);
+    backdrop-filter: blur(.1rem) saturate(150%);
+  }
+}
+
+.modal {
+  --modal-width: calc(min(420px, 100vw) - var(--padding) * 2);
+  --close-size: calc(var(--line-height) + var(--padding) * 2);
+
+  position: fixed;
+  z-index: var(--z-index-modal);
+  left: calc(50% - var(--modal-width) / 2);
+  width: var(--modal-width);
+  top: 5vh;
+  max-height: 90vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--background);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 .5rem 1rem var(--shadow-color);
+  animation: move .4s forwards;
+}
+
+@media (prefers-reduced-motion) {
+  .modal {
+    animation: none;
+  }
+}
+
+.modalOpen {
+}
+
+.modalClosing {
+}
+
+@keyframes move {
+  0% {
+    opacity: 0;
+    transform: translateY(-4rem) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0rem);
+  }
+}
+
+.close {
+  position: absolute;
+  z-index: var(--z-index-fixed);
+  right: 0;
+  top: 0;
+
+  width: var(--close-size);
+  height: var(--close-size);
+  margin: 0;
+  border: none;
+  padding: 0;
+
+  background: transparent;
+  color: var(--text-color-bold);
+  cursor: pointer;
+}
+
+.modal::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: calc(var(--close-size) * 2);
+  height: calc(var(--close-size) * 2);
+
+  background-image: radial-gradient(at 130% -30%, var(--background-alpha) 30%, 60%, transparent 70%);
+  pointer-events: none;
+}
+
+.modal > header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal > main {
+  overflow: auto;
+  flex-grow: 1;
+}
+
+.modal > footer {
+  border-top: 1px solid var(--border-color);
+}

@@ -1,48 +1,7 @@
-.button {
-  display: block;
-  padding: calc(var(--line-height) * 0.5);
-  width: 200px;
-  text-align: center;
-
-  --color: var(--primary);
-  --color-hover: var(--primary-hightlight);
-  color: white;
-  background-color: var(--color);
-  box-shadow: 0 .5em 1em var(--shadow-color);
-  margin: var(--padding);
-  transition: .1s transform;
-}
-
-.button:hover {
-  --color: var(--color-hover);
-  transform: scale(1.01);
-}
 
 .bitbucket {
   --color: hsl(216, 92%, 34%);
   --color-hover: hsl(216, 92%, 44%);
-}
-
-@keyframes zoomIn {
-  0% {
-    transform: none;
-  }
-  30% {
-    transform: perspective(50px) rotateX(8deg) translateZ(1px);
-  }
-  100% {
-    transform: perspective(50px) rotateX(0deg) translateZ(5px);
-  }
-}
-
-@keyframes zoomOut {
-  0% {
-    transform: perspective(50px) rotateX(0deg) translateZ(5px);
-  }
-  30% {
-    transform: perspective(50px) rotateX(-8deg) translateZ(1px);
-  }
-  100% {
-    transform: none;
-  }
+  display: block;
+  width: 200px;
 }

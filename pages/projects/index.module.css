@@ -10,12 +10,18 @@
 
 .item {
   text-decoration: none;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 0 var(--padding);
+  height: calc(var(--line-height) * 2);
+
+  background-color: var(--background);
 }
 
 .item:hover {
   text-decoration: none;
+  background-image: linear-gradient(to right, var(--highlight-bg) 320px, var(--background));
   background-color: var(--highlight-bg);
 }
 
