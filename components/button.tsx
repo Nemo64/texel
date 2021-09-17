@@ -22,7 +22,7 @@ export const Button = forwardRef(function Button(
     ref = ref as ForwardedRef<HTMLAnchorElement>;
     return (
       <Link href={href} prefetch={prefetch}>
-        <a rel="noreferrer" ref={ref} className={classes} {...linkProps} />
+        <a rel="noreferrer" ref={ref} className={classes} role="button" {...linkProps} />
       </Link>
     );
   } else {
@@ -35,7 +35,7 @@ export const Button = forwardRef(function Button(
 
 export function Toolbar({className, children, ...props}: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={classNames(className, css.toolbar)} {...props}>
+    <div className={classNames(className, css.toolbar)} role="toolbar" {...props}>
       {children}
     </div>
   );

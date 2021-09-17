@@ -6,7 +6,7 @@
   position: fixed;
   z-index: var(--z-index-modal);
   inset: 0;
-  background-color: hsla(0, 0%, 10%, 0.9);
+  background-color: var(--background-alpha);
   opacity: 0;
 }
 
@@ -22,7 +22,6 @@
 
 @supports (backdrop-filter: blur(.1rem) saturate(150%)) {
   .overlay {
-    background-color: hsla(0, 0%, 10%, 0.6);
     backdrop-filter: blur(.1rem) saturate(150%);
   }
 }
@@ -38,11 +37,13 @@
   top: 5vh;
   max-height: 90vh;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
 
   background-color: var(--background);
   border: 1px solid var(--border-color);
+  border-radius: .5rem;
   box-shadow: 0 .5rem 1rem var(--shadow-color);
   animation: move .4s forwards;
 }
@@ -91,7 +92,7 @@
   cursor: pointer;
 }
 
-.modal::before {
+.modal::after {
   content: "";
   position: absolute;
   right: 0;
@@ -101,17 +102,4 @@
 
   background-image: radial-gradient(at 130% -30%, var(--background-alpha) 30%, 60%, transparent 70%);
   pointer-events: none;
-}
-
-.modal > header {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal > main {
-  overflow: auto;
-  flex-grow: 1;
-}
-
-.modal > footer {
-  border-top: 1px solid var(--border-color);
 }

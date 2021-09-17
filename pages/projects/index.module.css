@@ -21,8 +21,8 @@
 
 .item:hover {
   text-decoration: none;
-  background-image: linear-gradient(to right, var(--highlight-bg) 320px, var(--background));
-  background-color: var(--highlight-bg);
+  background-image: linear-gradient(to right, var(--primary-background) 320px, var(--background));
+  background-color: var(--primary-background);
 }
 
 .name {

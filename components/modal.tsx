@@ -31,8 +31,8 @@ export function Modal({isOpen, onRequestClose, children}: ModalProps) {
                 overlayClassName={overlayClassName}
                 className={className}
                 closeTimeoutMS={parseMS(css.hideDelay)}>
-      <button type="button" className={css.close} onClick={onRequestClose}>&times;</button>
       {children}
+      <button type="button" className={css.close} onClick={onRequestClose}>&times;</button>
     </ReactModal>
   );
 }

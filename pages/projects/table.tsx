@@ -93,11 +93,9 @@ export default function ProjectTable() {
     </Toolbar>
 
     <Modal isOpen={commitDialog} onRequestClose={toggleCommitDialog}>
-      <main>
-        <h2>Commit changes?</h2>
-        <p>You made changes to these translations</p>
-        <ChangeOverview changes={changes}/>
-      </main>
+      <h2>Commit changes?</h2>
+      <p>You made changes to these translations</p>
+      <ChangeOverview changes={changes}/>
       <Toolbar>
         <Button onClick={async () => {
           await setTexels(changes);
@@ -108,11 +106,9 @@ export default function ProjectTable() {
     </Modal>
 
     <Modal isOpen={resetDialog} onRequestClose={toggleResetDialog}>
-      <main>
-        <h2>Reset Changes?</h2>
-        <p>The following changes will be <b>lost</b>.</p>
-        <ChangeOverview changes={changes}/>
-      </main>
+      <h2>Reset Changes?</h2>
+      <p>The following changes will be <b>lost</b>.</p>
+      <ChangeOverview changes={changes}/>
       <Toolbar>
         <Button onClick={async () => {
           await setChanges(changes.map(change => ({...change, value: undefined})));
