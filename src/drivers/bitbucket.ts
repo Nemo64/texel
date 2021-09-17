@@ -1,6 +1,6 @@
 import {domainToPath, generateL10nFile, isL10nFile, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
 import {groupBy, msg, wrapError} from "../util";
-import {Project, Texel, TexelDriver, uniqueTexels} from "./types";
+import {Project, subtractTexels, Texel, TexelDriver, uniqueTexels} from "./types";
 
 const REPOSITORY_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))$/;
 const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branch>.+)$/;
@@ -43,27 +43,53 @@ export class BitbucketDriver implements TexelDriver {
 
     if (REPOSITORY_ID.test(id)) {
       const branches = [] as Project[];
+      const branchModel = this.branchModel(id);
       for await (const branchPage of this.branches(id)) {
         branches.push(...branchPage.map(refToProject));
       }
-      return branches.reverse();
+
+      const mainBranch = (await branchModel).development.branch;
+      return [
+        branches.find(branch => mainBranch.name === branch.name) as Project,
+        ...branches.filter(branch => mainBranch.name !== branch.name).reverse()
+      ];
     }
 
     throw new Error(msg`Can't parse id ${id}`);
   }
 
   async list(id: Project["id"]): Promise<Texel[]> {
-    const {target} = await this.branch(id);
-    const results = [] as Promise<Texel[]>[];
+    const repositoryId = BRANCH_ID.exec(id)?.groups?.repository;
+    if (!repositoryId) {
+      throw new Error(msg`Branch id ${id} is not valid`);
+    }
 
-    for await (const filePage of this.files(target.repository.full_name, target.hash)) {
+    const [
+      branch,
+      {development: {branch: mainBranch}},
+    ] = await Promise.all([
+      this.branch(id),
+      this.branchModel(repositoryId),
+    ]);
+
+    const results = [] as Promise<Texel[]>[];
+    for await (const filePage of this.files(repositoryId, branch.target.hash)) {
       for (const file of filePage) {
         if (!isL10nFile(file.path)) {
           continue;
         }
 
         // const publicUrl = `https://bitbucket.org/${target.repository.full_name}/src/${target.hash}/${path}`;
-        results.push(this.readTexels(target.repository.full_name, target.hash, file.path));
+        if (branch.name === mainBranch.name) {
+          results.push(this.readTexels(repositoryId, branch.target.hash, file.path));
+        } else {
+          results.push(Promise.all([
+            this.readTexels(repositoryId, branch.target.hash, file.path),
+            this.readTexels(repositoryId, mainBranch.target.hash, file.path),
+          ]).then(([branchTexels, mainTexels]) => {
+            return subtractTexels(branchTexels, mainTexels);
+          }));
+        }
       }
     }
 
@@ -121,6 +147,9 @@ export class BitbucketDriver implements TexelDriver {
     );
   }
 
+  /**
+   * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/src#post
+   */
   private write(repositoryId: string, data: FormData): Promise<void> {
     return request(`https://api.bitbucket.org/2.0/repositories/${repositoryId}/src?${new URLSearchParams({
       access_token: this.token,
@@ -170,6 +199,19 @@ export class BitbucketDriver implements TexelDriver {
     return request(
       `https://api.bitbucket.org/2.0/repositories/${match.groups.repository}/refs/branches/${match.groups.branch}?${new URLSearchParams({
         fields: REF_FIELDS.join(','),
+        access_token: this.token,
+      })}`,
+    );
+  }
+
+  private branchModel(repositoryId: string): Promise<BranchModel> {
+    if (!REPOSITORY_ID.test(repositoryId)) {
+      throw new Error(msg`Repository id ${repositoryId} is not valid`);
+    }
+
+    return request(
+      `https://api.bitbucket.org/2.0/repositories/${repositoryId}/branching-model?${new URLSearchParams({
+        fields: BRANCH_MODEL_FIELDS.join(','),
         access_token: this.token,
       })}`,
     );
@@ -261,12 +303,12 @@ async function createRequest(url: string, init: RequestInit = {}): Promise<any> 
   }
 }
 
-class HttpError extends Error{
+class HttpError extends Error {
   constructor(
     public readonly url: string,
-    public readonly status: number
+    public readonly status: number,
   ) {
-    super(msg`Request to ${url} got a bad status code ${status}`)
+    super(msg`Request to ${url} got a bad status code ${status}`);
   }
 }
 
@@ -291,11 +333,12 @@ async function* pager<T>(url: string, init?: RequestInit): Paged<T> {
 /**
  * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories
  */
-const REPOSITORY_FIELDS = ['uuid', 'full_name'];
+const REPOSITORY_FIELDS = ['uuid', 'full_name', 'default_branch'];
 
 interface Repository {
   uuid: string;
   full_name: string;
+  default_branch: string;
 }
 
 /**
@@ -310,6 +353,19 @@ interface Ref {
     date: string;
     repository: Repository;
   }
+}
+
+/**
+ * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/branching-model
+ */
+const BRANCH_MODEL_FIELDS = [
+  ...REF_FIELDS.map(field => `development.branch.${field}`),
+  ...REF_FIELDS.map(field => `production.branch.${field}`),
+];
+
+interface BranchModel {
+  development: { branch: Ref },
+  production?: { branch: Ref },
 }
 
 /**

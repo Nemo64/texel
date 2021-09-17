@@ -59,6 +59,21 @@ export function uniqueTexels(...texels: Texel[]): Texel[] {
   return Array.from(result.values());
 }
 
+/**
+ * Creates a list of texels where the only items from the first exist,
+ * that don't exist in the second list.
+ */
+export function subtractTexels(baseTexels: Texel[], subtractTexels: Texel[]): Texel[] {
+  const result = new Map<string, Texel>();
+  for (const texel of baseTexels) {
+    result.set(stringTexelId(texel), texel);
+  }
+  for (const texel of subtractTexels) {
+    result.delete(stringTexelId(texel));
+  }
+  return Array.from(result.values());
+}
+
 export interface TexelDriver {
   /**
    * Return the project with the given id
