@@ -11,11 +11,6 @@ export interface TexelId {
  * This is the most basic text element.
  */
 export interface Texel extends TexelId {
-  domain: string;
-  publicUrl?: string;
-  path?: string;
-  key: string;
-  locale: string;
   value: string | undefined;
 }
 
@@ -37,6 +32,31 @@ export function sameTexelId(t1: TexelId, t2: TexelId) {
   return t1.key === t2.key
     && t1.domain === t2.domain
     && t1.locale === t2.locale;
+}
+
+/**
+ * Create a string representation of the texels id part.
+ */
+export function stringTexelId(texel: TexelId) {
+  return JSON.stringify([texel.domain, texel.key, texel.locale]);
+}
+
+/**
+ * Merges texels.
+ * This means duplicate domain-key-locale combos are deleted.
+ * The last texel wins on duplicate.
+ * Texels with an undefined value are deleted.
+ */
+export function uniqueTexels(...texels: Texel[]): Texel[] {
+  const result = new Map<string, Texel>();
+  for (const texel of texels) {
+    if (texel.value !== undefined) {
+      result.set(stringTexelId(texel), texel);
+    } else {
+      result.delete(stringTexelId(texel));
+    }
+  }
+  return Array.from(result.values());
 }
 
 export interface TexelDriver {

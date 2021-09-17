@@ -1,7 +1,8 @@
 import classNames from "classnames";
 import Head from "next/head";
 import {useRouter} from "next/router";
-import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, useLayoutEffect, useRef} from "react";
+import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, useLayoutEffect, useRef, useState} from "react";
+import {toast} from "react-toastify";
 import {Button, Toolbar} from "../../components/button";
 import {Modal} from "../../components/modal";
 import {useAuthOrRedirect} from "../../src/auth";
@@ -9,6 +10,7 @@ import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
 import {useProjectChange, useProjectContent} from "../../src/loader";
 import {groupBy, sortFn, uniqueFn, useBooleanState} from "../../src/util";
 import {ProjectBreadcrumb} from "./index";
+import ISO6391 from 'iso-639-1';
 import css from "./table.module.css";
 
 export default function ProjectTable() {
@@ -20,6 +22,7 @@ export default function ProjectTable() {
 
   const [commitDialog, toggleCommitDialog] = useBooleanState(false);
   const [resetDialog, toggleResetDialog] = useBooleanState(false);
+  const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
 
   if (!auth || !projectId || loading || !project) {
     return <>
@@ -36,6 +39,7 @@ export default function ProjectTable() {
 
   const locales = texels
     .map(texel => texel.locale)
+    .concat(additionalLocales)
     .filter(uniqueFn())
     .sort();
 
@@ -48,18 +52,28 @@ export default function ProjectTable() {
 
     {domains.map(([domain, texels]) => (
       <Fragment key={domain}>
-        <h2>
-          <a href={texels[0].publicUrl} target="_blank" rel="noreferrer">
-            {texels[0].path}
-          </a>
-        </h2>
+        <h2>{domain}</h2>
         <table className={css.table} key={domain}>
           <thead>
           <tr className={css.header}>
-            <th className={css.side}>{domain}</th>
-            {locales.map(locale => (
-              <th key={locale}>{locale}</th>
-            ))}
+            <th className={css.side} />
+            {locales.map(locale => {
+              const english = ISO6391.getName(locale);
+              const native = ISO6391.getNativeName(locale);
+              const name = english === native ? english : `${english} / ${native}`
+              return <th key={locale}>{name}</th>;
+            })}
+            <th>
+              <select onChange={(e) => {
+                setAdditionalLocales([...additionalLocales, e.target.value]);
+                e.target.value = '';
+              }}>
+                <option value="">Add locale</option>
+                {ISO6391.getAllCodes().filter(locale => !locales.includes(locale)).map(locale => (
+                  <option key={locale} value={locale}>{ISO6391.getName(locale)}</option>
+                ))}
+              </select>
+            </th>
           </tr>
           </thead>
           <tbody>
@@ -98,7 +112,13 @@ export default function ProjectTable() {
       <ChangeOverview changes={changes}/>
       <Toolbar>
         <Button onClick={async () => {
-          await setTexels(changes);
+          const update = setTexels(changes)
+            .then(() => setChanges(changes.map(change => ({...change, value: undefined}))));
+          await toast.promise(update, {
+            pending: "Saving changes",
+            success: "All changes saved",
+            error: "Failed to save changes",
+          });
           toggleCommitDialog();
         }}>Commit</Button>
         <Button onClick={toggleCommitDialog}>Close</Button>
@@ -111,7 +131,12 @@ export default function ProjectTable() {
       <ChangeOverview changes={changes}/>
       <Toolbar>
         <Button onClick={async () => {
-          await setChanges(changes.map(change => ({...change, value: undefined})));
+          const update = setChanges(changes.map(change => ({...change, value: undefined})));
+          await toast.promise(update, {
+            pending: "Discarding changes",
+            success: "All changes were discarded",
+            error: "Failed to discard changes"
+          });
           toggleResetDialog();
         }}>Reset</Button>
         <Button onClick={toggleResetDialog}>Close</Button>
@@ -123,18 +148,23 @@ export default function ProjectTable() {
 
 function Column({id, texel, change, setChanges}: { id: TexelId, texel?: Texel, change?: Texel, setChanges: (updates: Texel[]) => void }) {
   const changeHandler = async (newValue: string) => {
-    const value = newValue !== texel?.value ? newValue : undefined;
-    setChanges([{domain: id.domain, key: id.key, locale: id.locale, value}]);
+    const oldValue = texel?.value ?? '';
+    const value = newValue !== oldValue ? newValue : undefined;
+    setChanges([{
+      domain: id.domain,
+      key: id.key,
+      locale: id.locale,
+      value
+    }]);
   };
 
   const className = classNames({
-    [css.value]: true,
     [css.missing]: !texel || !texel.value,
     [css.changed]: change && change?.value !== texel?.value,
   });
 
   return <td className={className}>
-    <Editor defaultValue={change?.value ?? texel?.value}
+    <Editor defaultValue={change?.value ?? texel?.value ?? ''}
             aria-label={`${id.domain} ${id.key} ${id.locale}`}
             title={`original value: ${texel?.value}`}
             onData={changeHandler}/>
@@ -162,7 +192,9 @@ function ChangeOverview({changes}: { changes: Texel[] }) {
 function Key({value}: { value: string }) {
   const position = value.lastIndexOf('.');
   if (position < 0 || value.includes(' ')) {
-    return <div className={css.key} title={value}>{value}</div>;
+    return <div className={css.key} title={value}>
+      <span className={css.key1}>{value}</span>
+    </div>;
   }
 
   const prefix = value.slice(0, position);
@@ -185,6 +217,7 @@ function Editor({defaultValue, onData, onBlur, onChange, ...props}: ValueProps) 
   useLayoutEffect(() => {
     if (objectRef.current.textContent !== String(defaultValue)) {
       objectRef.current.textContent = String(defaultValue);
+      lastData.set(objectRef.current, String(defaultValue));
     }
   }, [objectRef, defaultValue]);
 

@@ -19,11 +19,12 @@
   width: var(--column-width);
   max-width: var(--column-width);
   min-height: var(--line-height);
-  padding-left: var(--padding);
+  padding: var(--padding);
   background-color: var(--background);
 }
 
-.table tbody tr:hover {
+.table tbody tr:hover,
+.table tbody tr:focus-within {
   --background: var(--primary-background);
   --background-alpha: var(--primary-background);
 }
@@ -58,30 +59,29 @@ th.side {
   }
 }
 
+
 .key {
   --end-width: 50%;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   white-space: nowrap;
   text-align: center;
   overflow: hidden;
 }
 
-.key1 {
+.key1, .key2 {
   position: absolute;
+  top: 0;
   height: 100%;
-  right: var(--end-width);
+  padding: var(--padding) 0;
   text-align: right;
 }
 
-.key2 {
-  position: absolute;
-  min-width: var(--end-width);
-  height: 100%;
+.key1:not(:only-child) {
+  right: var(--end-width);
+}
+
+.key2:not(:only-child) {
   left: calc(100% - var(--end-width));
+  min-width: var(--end-width);
   text-align: left;
 }
 
@@ -98,21 +98,26 @@ th.side {
   box-shadow: 1rem 0 1rem var(--background);
 }
 
-td.value {
+.table td {
   position: relative;
   white-space: pre-wrap;
   text-align: left;
-  padding: 0;
 }
 
-td.value:focus-within {
+.table td.value:focus-within {
   z-index: var(--z-index-sticky);
 }
 
-.value.missing {
+.table td.missing {
   background-color: var(--danger-background);
 }
 
-.value.changed {
+.table td.changed {
   background-color: var(--info-background);
+}
+
+.table td select, .table th select,
+.table td [contenteditable="true"], .table th [contenteditable="true"] {
+  margin: calc(var(--padding) * -1);
+  padding: var(--padding);
 }

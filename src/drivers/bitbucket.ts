@@ -1,6 +1,6 @@
-import {getL10nFileInfo, isL10nFile, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
-import {msg} from "../util";
-import {Project, Texel, TexelDriver} from "./types";
+import {domainToPath, generateL10nFile, isL10nFile, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
+import {groupBy, msg, wrapError} from "../util";
+import {Project, Texel, TexelDriver, uniqueTexels} from "./types";
 
 const REPOSITORY_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))$/;
 const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branch>.+)$/;
@@ -52,52 +52,83 @@ export class BitbucketDriver implements TexelDriver {
     throw new Error(msg`Can't parse id ${id}`);
   }
 
-  list(id: Project["id"]): Promise<Texel[]> {
-    return this.texels(id);
-  }
-
-  update(id: Project["id"], groups: Texel[]): Promise<void> {
-    return Promise.reject(new Error("not implemented yet"));
-  }
-
-  private async texels(branchId: Project["id"]): Promise<Texel[]> {
-    const {target} = await this.branch(branchId);
-
-    const promises = [] as Promise<Texel[]>[];
+  async list(id: Project["id"]): Promise<Texel[]> {
+    const {target} = await this.branch(id);
+    const results = [] as Promise<Texel[]>[];
 
     for await (const filePage of this.files(target.repository.full_name, target.hash)) {
-      for (const {path} of filePage) {
-        if (!isL10nFile(path)) {
+      for (const file of filePage) {
+        if (!isL10nFile(file.path)) {
           continue;
         }
 
-        const publicUrl = `https://bitbucket.org/${target.repository.full_name}/src/${target.hash}/${path}`;
-        promises.push((async () => {
-          const content = await this.content(target.repository.full_name, target.hash, path);
-          const {domain, locale} = getL10nFileInfo(path);
-          return parseL10nFile(path, content)
-            .map(([key, value]) => ({key, path, publicUrl, domain, locale, value}))
-        })());
+        // const publicUrl = `https://bitbucket.org/${target.repository.full_name}/src/${target.hash}/${path}`;
+        results.push(this.readTexels(target.repository.full_name, target.hash, file.path));
       }
     }
 
-    return (await Promise.all(promises)).flat();
+    return (await Promise.all(results)).flat();
+  }
+
+  async update(id: Project["id"], changes: Texel[]): Promise<void> {
+    const {target, name: branch} = await this.branch(id);
+    const commit = new FormData();
+
+    await Promise.all(
+      groupBy(changes, change => domainToPath(change.domain, change.locale))
+        .map(async ([path, pathChanges]) => {
+          const existingTexels = await this.readTexels(target.repository.full_name, target.hash, path);
+          const texels = uniqueTexels(...existingTexels, ...pathChanges);
+          commit.set(path, generateL10nFile(path, texels));
+        }),
+    );
+
+    // write those values last, since they can technically be overwritten by filenames
+    commit.set('branch', branch);
+    commit.set('parents', target.hash);
+    commit.set('message', `Edited with Texel-Editor - ${window?.location?.host ?? "unknown host"}`);
+
+    await this.write(target.repository.full_name, commit);
+  }
+
+  /**
+   * Reads a file and parses it.
+   */
+  private async readTexels(repositoryId: string, commitHash: string, path: string): Promise<Texel[]> {
+    try {
+      const content = await this.read(repositoryId, commitHash, path);
+      return parseL10nFile(path, content);
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) {
+        return [];
+      } else {
+        throw wrapError(e, msg`could not read texels in ${repositoryId} at path ${path}`);
+      }
+    }
   }
 
   /**
    * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/src
    */
-  private content(repositoryId: string, commitHash: string, path: string): Promise<string> {
+  private read(repositoryId: string, commitHash: string, path: string): Promise<string> {
     return request(
       `https://api.bitbucket.org/2.0/repositories/${repositoryId}/src/${commitHash}/${path}?${new URLSearchParams({
         access_token: this.token,
       })}`,
       {
-        headers: {
-          accept: "text/*; charset=utf-8",
-        },
+        headers: {accept: "text/*; charset=utf-8"},
       },
     );
+  }
+
+  private write(repositoryId: string, data: FormData): Promise<void> {
+    return request(`https://api.bitbucket.org/2.0/repositories/${repositoryId}/src?${new URLSearchParams({
+      access_token: this.token,
+    })}`, {
+      method: 'post',
+      body: data,
+      headers: {accept: "*/*"},
+    });
   }
 
   /**
@@ -190,7 +221,8 @@ const requestCache = new Map<string, Promise<any>>();
 
 function request(url: string, init: RequestInit = {}): Promise<any> {
   if (init.method && init.method.toUpperCase() !== 'GET') {
-    return createRequest(url, init);
+    return createRequest(url, init)
+      .finally(() => requestCache.clear());
   }
 
   let promise = requestCache.get(url);
@@ -212,16 +244,29 @@ async function createRequest(url: string, init: RequestInit = {}): Promise<any> 
     init.headers.set('accept', 'application/json; charset=utf-8');
   }
 
+  const accept = init.headers.get('accept');
   const response = await fetch(url, init);
   switch (response.status) {
     case 200:
-      if (init.headers.get('accept')?.startsWith('application/json')) {
+    case 201:
+      if (accept?.startsWith('application/json')) {
         return await response.json();
-      } else {
+      } else if (accept?.startsWith('text/')) {
         return await response.text();
+      } else {
+        return undefined;
       }
     default:
-      throw new Error(msg`Request to ${url} got a bad status code ${response.status}`);
+      throw new HttpError(url, response.status);
+  }
+}
+
+class HttpError extends Error{
+  constructor(
+    public readonly url: string,
+    public readonly status: number
+  ) {
+    super(msg`Request to ${url} got a bad status code ${status}`)
   }
 }
 

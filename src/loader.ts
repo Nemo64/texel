@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from "react";
+import {useCallback} from "react";
 import useSWR, {mutate, SWRConfiguration} from "swr";
 import {Auth, getDriver} from "./auth";
 import {ChangeDriver} from "./drivers/change";
@@ -11,6 +11,7 @@ import {msg} from "./util";
 export function useProjectListing(auth?: Auth, id?: string) {
   const args = auth ? [auth, id] : null;
   const {data, isValidating, error} = useSWR(args, projectList);
+  error && console.error('useProjectListing', error);
   return {childProjects: data?.childProjects ?? [], project: data?.project, isValidating, error, loading: !data};
 }
 
@@ -40,6 +41,7 @@ const projectList: SWRConfiguration<ProjectListing> = {
 export function useProjectContent(auth?: Auth, id?: string) {
   const args = auth && id ? [auth, id] : null;
   const {data, isValidating, error} = useSWR(args, projectContent);
+  error && console.error('useProjectContent', error);
   const setTexels = useCallback(async (texels: Texel[]) => {
     if (!auth || !id) {
       throw new Error(msg`Auth and id must be defined. Got ${auth} ${id}`);
@@ -87,6 +89,7 @@ const projectContent: SWRConfiguration<ProjectContent> = {
 export function useProjectChange(auth?: Auth, id?: string) {
   const args = auth && id ? [auth, id, 'changes'] : null;
   const {data, isValidating, error} = useSWR(args, projectChanges);
+  error && console.error('useProjectChange', error);
   const setChanges = useCallback(async (texels: Texel[]) => {
     if (!auth || !id) {
       throw new Error(msg`Auth and id must be defined. Got ${auth} ${id}`);
@@ -108,11 +111,3 @@ const projectChanges: SWRConfiguration<ProjectChanges> = {
     return await driver.list(id);
   },
 };
-
-// /**
-//  * Reads all {@see TexelGroup} changes of a project.
-//  */
-// export function useProjectContentChanges(id?: string) {
-//   const [changes, setChanges] = useLocalStorageState<Te[]>(`changes:${id}`, []);
-//   return {changes, setChanges};
-// }
