@@ -58,23 +58,21 @@ export default function Projects() {
 }
 
 export function ProjectBreadcrumb({project}: { project?: Project }) {
+  const link = (project: Project) => project.leaf
+    ? `/projects/table?id=${encodeURIComponent(project.id)}`
+    : `/projects?id=${encodeURIComponent(project.id)}`
+
   return <div>
     {project && (
-      <Link href={`/projects`}>
-        root
-      </Link>
+      <Link href={`/projects`}>root</Link>
     )}
     {project?.parent && <>
       {' / '}
-      <Link href={`/projects?id=${encodeURIComponent(project.parent.id)}`}>
-        {project.parent.name}
-      </Link>
+      <Link href={link(project.parent)}>{project.parent.name}</Link>
     </>}
     {project && <>
       {' / '}
-      <Link href={`/projects?id=${encodeURIComponent(project.id)}`}>
-        {project.name}
-      </Link>
+      <Link href={link(project)}>{project.name}</Link>
     </>}
   </div>;
 }
@@ -110,7 +108,7 @@ function ProjectLeafDetails({project, auth}: { project: Project, auth: Auth | un
     </span>;
   }
 
-  const keys = texels.map(texel => texel.key).filter(uniqueFn());
+  const keys = texels.map(texel => `${texel.domain}/${texel.key}`).filter(uniqueFn());
   const keysByLocale = groupBy(texels, texel => texel.locale);
 
   return <span className={css.progress} ref={ref}>

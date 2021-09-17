@@ -62,6 +62,11 @@ th.side {
 
 .key {
   --end-width: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   white-space: nowrap;
   text-align: center;
   overflow: hidden;
@@ -69,6 +74,7 @@ th.side {
 
 .key1, .key2 {
   position: absolute;
+  left: var(--padding);
   top: 0;
   height: 100%;
   padding: var(--padding) 0;
@@ -76,6 +82,7 @@ th.side {
 }
 
 .key1:not(:only-child) {
+  left: unset;
   right: var(--end-width);
 }
 
