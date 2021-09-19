@@ -1,3 +1,5 @@
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
+
 module.exports = {
   reactStrictMode: true,
   async headers() {
@@ -12,6 +14,7 @@ module.exports = {
 
               "object-src 'none'",
               "style-src 'unsafe-inline' 'self'",
+              `script-src ${PHASE_DEVELOPMENT_SERVER ? "'unsafe-eval'" : ""} 'self'`,
               "connect-src 'self' https://api.bitbucket.org/",
 
               "form-action 'none'",
