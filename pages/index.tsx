@@ -11,7 +11,7 @@ export default function Home() {
       <meta name="description" content="A tool to easily view and edit text/translation files in your software projects."/>
     </Head>
     <div className={css.lead}>
-      <div className={css.content}>
+      <div className="centered">
         <h1><strong>Texel</strong> - <b>Tex</b>t <b>El</b>ement editor</h1>
         <p>A tool to easily view and edit text/translation files in your software projects.</p>
       </div>
@@ -30,15 +30,18 @@ export default function Home() {
         </svg>
       </div>
     </div>
-    <div className={css.content}>
+    <div className="centered">
 
       <h2>How do I use the Texel editor?</h2>
       <p>
         Just choose where your project source code lives from the list below.
       </p>
 
-      <Button href={`/auth/bitbucket`} className={css.bitbucket}>
+      <Button href={`/auth/bitbucket`} className={classNames(css.loginButton, css.bitbucket)}>
         Use Bitbucket
+      </Button>
+      <Button href={'/auth/directory'} className={classNames(css.loginButton, css.directory)}>
+        Use local directory
       </Button>
 
       <h2>How does it work?</h2>

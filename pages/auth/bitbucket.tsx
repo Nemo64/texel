@@ -1,6 +1,7 @@
 import Head from "next/head";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
+import {Link} from "../../components/link";
 import {useAuth} from "../../src/auth";
 
 /**
@@ -40,19 +41,21 @@ export default function AuthBitbucket() {
       <p>Ensure the <code>NEXT_PUBLIC_BITBUCKET_CLIENT_ID</code> environment variable is set during build.</p>
 
       <p>
-        <a href="https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/">
+        <Link href="https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/">
           Use OAuth on Bitbucket Cloud
-        </a>
+        </Link>
       </p>
     </>;
   }
 
   return <>
     <Head>
-      <title>Redirect ot bitbucket</title>
+      <title>Login to bitbucket</title>
       <link rel="dns-prefetch" href="https://bitbucket.org"/>
       <link rel="dns-prefetch" href="https://api.bitbucket.org"/>
     </Head>
-    Brace yourself...
+    <div className="centered">
+      <p>Brace yourself...</p>
+    </div>
   </>;
 }

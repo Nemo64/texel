@@ -16,19 +16,21 @@ export default function MyApp({Component, pageProps}: AppProps) {
       <Component {...pageProps} />
     </div>
     <footer className={css.footer}>
-      <p>
-        Texel editor open source project.
-        {' '}<Link href="https://github.com/Nemo64/texel">Source code available on GitHub.</Link>
-        Feel free to file issues and contribute to make this tool fit your use case better.
-      </p>
-      <p>
-        THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-        PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-        BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
-        OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-        DEALINGS IN THE SOFTWARE.
-      </p>
+      <div className="centered">
+        <p>
+          Texel editor open source project.
+          {' '}<Link href="https://github.com/Nemo64/texel">Source code available on GitHub.</Link>
+          {' '}Feel free to file issues and contribute to make this tool fit your use case better.
+        </p>
+        <p>
+          THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+          PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+          BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+          OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+          DEALINGS IN THE SOFTWARE.
+        </p>
+      </div>
     </footer>
     <ToastContainer/>
   </>;

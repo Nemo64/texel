@@ -1,6 +1,6 @@
-import ISO6391 from 'iso-639-1';
 import yaml from "js-yaml";
 import {Texel} from "./drivers/types";
+import {getLocales} from "./lang";
 import {groupBy, msg, wrapError} from "./util";
 
 /**
@@ -96,8 +96,8 @@ enum Pattern {
 }
 
 const FILE_EXP = new RegExp([
-  `^(?<f0>[^]*/)?(?<l0>${ISO6391.getAllCodes().join('|')})/(?<n0>[^/]+)\\.(?<e0>${L10N_FILE_EXTENSIONS.join('|')})$`,
-  `^(?<f1>[^]*/)?(?<n1>[^/]+)\\.(?<l1>${ISO6391.getAllCodes().join('|')})\\.(?<e1>${L10N_FILE_EXTENSIONS.join('|')})$`,
+  `^(?<f0>[^]*/)?(?<l0>${getLocales().join('|')})/(?<n0>[^/]+)\\.(?<e0>${L10N_FILE_EXTENSIONS.join('|')})$`,
+  `^(?<f1>[^]*/)?(?<n1>[^/]+)\\.(?<l1>${getLocales().join('|')})\\.(?<e1>${L10N_FILE_EXTENSIONS.join('|')})$`,
 ].join('|'));
 
 const DOMAIN_EXP = new RegExp(`^${[

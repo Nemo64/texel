@@ -1,10 +1,4 @@
-.content {
-  max-width: calc(var(--line-width) + var(--padding) * 2);
-  margin: 0 auto;
-}
-
 .lead {
-
   position: relative;
   background-color: var(--primary);
   color: var(--primary-text);
@@ -12,13 +6,16 @@
   padding-bottom: var(--padding);
 }
 
-.bitbucket {
-  --color: hsl(216, 92%, 34%);
-  --color-hover: hsl(216, 92%, 44%);
+.loginButton {
   display: block;
   width: 300px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.bitbucket {
+  --color: hsl(216, 92%, 34%);
+  --color-hover: hsl(216, 92%, 44%);
 }
 
 .div {

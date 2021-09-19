@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import Link from "next/link";
 import {AnchorHTMLAttributes, ButtonHTMLAttributes, ForwardedRef, forwardRef, HTMLAttributes, MouseEvent, ReactElement, useState} from "react";
 import css from "./button.module.css";
+import {Link} from "./link";
 
 // <a href> buttons extensions
 interface LinkAttributes extends AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -45,11 +45,10 @@ export const Button = forwardRef(function Button(
     const {href, prefetch, ...linkProps} = props;
     ref = ref as ForwardedRef<HTMLAnchorElement>;
     return (
-      <Link href={href} prefetch={prefetch ?? (!disabled || undefined)}>
-        <a rel="noreferrer" role="button" ref={ref} {...linkProps}
-           onClick={onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
-           className={className} aria-disabled={disabled}/>
-      </Link>
+      <Link href={href} prefetch={prefetch ?? (!disabled || undefined)}
+            role="button" ref={ref} {...linkProps}
+            onClick={onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
+            className={className} aria-disabled={disabled}/>
     );
   } else {
     ref = ref as ForwardedRef<HTMLButtonElement>;

@@ -18,7 +18,7 @@ export const Link = forwardRef(function Link(
   }
 
   return (
-    <NextLink href={href} prefetch={prefetch}>
+    <NextLink href={href} prefetch={prefetch && undefined}>
       <a rel="noreferrer" ref={ref} {...props}/>
     </NextLink>
   );

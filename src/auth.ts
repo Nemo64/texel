@@ -1,11 +1,12 @@
+import {useRouter} from "next/router";
+import {useCallback, useEffect, useState} from "react";
 import {createLocalStorageStateHook} from "use-local-storage-state";
 import {BitbucketDriver} from "./drivers/bitbucket";
+import {DirectoryDriver} from "./drivers/directory";
 import {TexelDriver} from "./drivers/types";
-import {useCallback, useEffect, useState} from "react";
-import {useRouter} from "next/router";
 
 export interface Auth {
-  readonly type: "bitbucket";
+  readonly type: "bitbucket" | "directory";
   readonly token: string;
   readonly expire?: number;
 }
@@ -58,6 +59,8 @@ export function getDriver(auth: Auth): TexelDriver {
   switch (auth.type) {
     case "bitbucket":
       return new BitbucketDriver(auth.token);
+    case "directory":
+      return new DirectoryDriver(auth.token);
     default:
       throw new Error(`There is no driver for ${auth.type}`);
   }

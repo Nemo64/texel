@@ -13,7 +13,6 @@
   /*margin-top: calc(var(--line-height) * 2);*/
   padding: var(--line-height) 0 calc(var(--line-height) * 2);
   background-image: linear-gradient(to bottom, var(--shadow-color), transparent 1rem);
-  padding-left: calc(50vw - var(--line-width) / 2 - var(--padding));
 }
 
 /*.footer::before {*/

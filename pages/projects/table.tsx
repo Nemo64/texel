@@ -32,7 +32,7 @@ export default function ProjectTable() {
       </Head>
       <Navbar project={project}/>
       {error && <pre>{String(error)}</pre>}
-      {isValidating && <div>loading...</div>}
+      {isValidating && <p>loading...</p>}
     </>;
   }
 

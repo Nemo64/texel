@@ -94,5 +94,5 @@ export interface TexelDriver {
    * Update the provided texel groups.
    * If the variants of a TexelGroup are empty, then this texel group will be deleted.
    */
-  update(id: Project["id"], groups: Texel[]): Promise<void>;
+  update(id: Project["id"], changes: Texel[]): Promise<void>;
 }
