@@ -1,5 +1,6 @@
 import type {AppProps} from 'next/app';
 import Head from 'next/head';
+import {useEffect} from "react";
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {Link} from "../components/link";
@@ -7,6 +8,12 @@ import '../styles/globals.css';
 import css from "./_app.module.css";
 
 export default function MyApp({Component, pageProps}: AppProps) {
+  useEffect(() => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    console.log('rerun');
+  });
+
   return <>
     <Head>
       <title>Texel Editor</title>

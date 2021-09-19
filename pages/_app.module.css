@@ -2,8 +2,9 @@
   /* this ensures that horizontal overflow increases the wrappers width */
   /* this then allows sticky elements to scroll horizontally as well */
   display: table;
-  min-width: 100vw;
+  min-width: calc(100vw - var(--scrollbar-width));
   min-height: calc(100vh - var(--line-height) * 3);
+  box-shadow: 0 0 .2rem .2rem var(--shadow-color);
 }
 
 .footer {
@@ -12,7 +13,6 @@
   /*text-align: center;*/
   /*margin-top: calc(var(--line-height) * 2);*/
   padding: var(--line-height) 0 calc(var(--line-height) * 2);
-  background-image: linear-gradient(to bottom, var(--shadow-color), transparent 1rem);
 }
 
 /*.footer::before {*/

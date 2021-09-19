@@ -3,6 +3,7 @@
   --line-height: 1.5rem;
   --padding: 0.75rem;
   --sticky-top: 0rem;
+  --scrollbar-width: 0px; /* must be set by javascript on startup */
 
   --z-index-dropdown: 1000;
   --z-index-sticky: 1020;

@@ -14,7 +14,7 @@ export function getLanguageName(locale: string): string {
   return `${english} / ${native}`;
 }
 
-export function LanguageName({locale}: {locale:string}) {
+export function LanguageName({locale}: { locale: string }) {
   const english = ISO6391.getName(locale);
   const native = ISO6391.getNativeName(locale);
   if (english === native) {
