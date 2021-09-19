@@ -5,6 +5,8 @@
   border: 0;
 
   text-align: center;
+  text-decoration: none !important;
+  font: inherit;
   cursor: pointer;
 
   --color: var(--primary);
@@ -12,17 +14,17 @@
   --color-disabled: var(--primary-background);
   color: var(--primary-text);
   background-color: var(--color);
-  box-shadow: 0 .5em 1em var(--shadow-color);
+  box-shadow: 0 .2em 1em var(--shadow-color);
 }
 
-.base:disabled {
+.base:disabled, .base.disabled {
   cursor: not-allowed;
   box-shadow: 0 .1em .5em var(--shadow-color);
   opacity: .6;
   filter: saturate(50%);
 }
 
-.base:hover:not(:disabled) {
+.base:hover:not(:disabled):not(.disabled) {
   --color: var(--color-hover);
 }
 
@@ -30,6 +32,9 @@
   position: sticky;
   z-index: var(--z-index-sticky);
   bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 100vw;
   border-top: 1px solid var(--border-color);
 
   display: flex;

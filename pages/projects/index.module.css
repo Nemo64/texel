@@ -9,18 +9,18 @@
 }
 
 .item {
-  text-decoration: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0 var(--padding);
   height: calc(var(--line-height) * 2);
 
+  color: inherit;
+  text-decoration: inherit !important;
   background-color: var(--background);
 }
 
 .item:hover {
-  text-decoration: none;
   background-image: linear-gradient(to right, var(--primary-background) 320px, var(--background));
   background-color: var(--primary-background);
 }

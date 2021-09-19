@@ -1,7 +1,61 @@
+.content {
+  max-width: calc(var(--line-width) + var(--padding) * 2);
+  margin: 0 auto;
+}
+
+.lead {
+
+  position: relative;
+  background-color: var(--primary);
+  color: var(--primary-text);
+  padding-top: var(--padding);
+  padding-bottom: var(--padding);
+}
 
 .bitbucket {
   --color: hsl(216, 92%, 34%);
   --color-hover: hsl(216, 92%, 44%);
   display: block;
-  width: 200px;
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.div {
+  display: none;
+}
+
+@media screen and (min-width: 640px) {
+
+  /* @see https://www.shapedivider.app/ */
+  /* @see https://www.youtube.com/watch?v=lPJVi797Uy0 */
+
+  .lead {
+    --div-height: 150px;
+    padding-top: calc(var(--padding) + var(--div-height) / 2);
+    padding-bottom: calc(var(--padding) + var(--div-height));
+  }
+
+  .div {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+  }
+
+  .div svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: var(--div-height);
+  }
+
+  .div .fill {
+    fill: var(--background);
+  }
+
 }

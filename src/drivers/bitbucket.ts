@@ -125,7 +125,7 @@ export class BitbucketDriver implements TexelDriver {
       const content = await this.read(repositoryId, commitHash, path);
       return parseL10nFile(path, content);
     } catch (e) {
-      if (e instanceof HttpError && e.status === 404) {
+      if (e instanceof BitbucketHttpError && e.status === 404) {
         return [];
       } else {
         throw wrapError(e, msg`could not read texels in ${repositoryId} at path ${path}`);
@@ -299,16 +299,22 @@ async function createRequest(url: string, init: RequestInit = {}): Promise<any> 
         return undefined;
       }
     default:
-      throw new HttpError(url, response.status);
+      throw new BitbucketHttpError(url, init.method ?? 'GET', response.status);
   }
 }
 
-class HttpError extends Error {
-  constructor(
-    public readonly url: string,
-    public readonly status: number,
-  ) {
-    super(msg`Request to ${url} got a bad status code ${status}`);
+class BitbucketHttpError extends Error {
+  public readonly url: string;
+  public readonly method: string;
+  public readonly status: number;
+
+  constructor(url: string, method: string, status: number) {
+    url = url.replace(/token=[^&]+/, 'token=[hidden]');
+    method = method.toUpperCase();
+    super(`${method} ${status} from request ${JSON.stringify(url)}`);
+    this.url = url;
+    this.method = method;
+    this.status = status;
   }
 }
 

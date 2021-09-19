@@ -1,9 +1,9 @@
 import Head from "next/head";
-import Link from "next/link";
 import {useRouter} from "next/router";
-import {useEffect} from "react";
-import {useForm} from "react-hook-form";
+import {useState} from "react";
 import {useInView} from "react-intersection-observer";
+import {Link} from "../../components/link";
+import {Navbar} from "../../components/navbar";
 import {Auth, useAuthOrRedirect} from "../../src/auth";
 import {Project} from "../../src/drivers/types";
 import {useProjectContent, useProjectListing} from "../../src/loader";
@@ -14,31 +14,27 @@ export default function Projects() {
   const router = useRouter();
   const {auth} = useAuthOrRedirect();
   const {project, childProjects, loading, isValidating, error} = useProjectListing(auth, router.query.id as string);
-
-  const {register, reset, watch} = useForm({defaultValues: {q: ''}});
-  useEffect(() => reset({q: ''}), [reset, router.query.id]);
-  const query = watch('q');
+  const [search, setSearch] = useState('');
 
   if (loading) {
     return <>
       <Head>
         <title>loading...</title>
       </Head>
+      <Navbar project={project}/>
       {error && <pre>{String(error)}</pre>}
       {isValidating && <div>loading...</div>}
     </>;
   }
 
   const filteredProjects = childProjects
-    .filter(project => project.name.toLowerCase().includes(query.toLowerCase()));
+    .filter(project => project.name.toLowerCase().includes(search.toLowerCase()));
 
   return <>
     <Head>
       <title>{project?.name ?? 'Project list'}</title>
     </Head>
-
-    <ProjectBreadcrumb project={project}/>
-    <input type="search" autoComplete={'no'} {...register('q')}/>
+    <Navbar project={project} onSearch={setSearch}/>
 
     {groupBy(filteredProjects, project => project.parent?.name)
       .sort(sortFn(([headline]) => headline ?? ''))
@@ -57,43 +53,19 @@ export default function Projects() {
   </>;
 }
 
-export function ProjectBreadcrumb({project}: { project?: Project }) {
-  const link = (project: Project) => project.leaf
-    ? `/projects/table?id=${encodeURIComponent(project.id)}`
-    : `/projects?id=${encodeURIComponent(project.id)}`
-
-  return <div>
-    {project && (
-      <Link href={`/projects`}>root</Link>
-    )}
-    {project?.parent && <>
-      {' / '}
-      <Link href={link(project.parent)}>{project.parent.name}</Link>
-    </>}
-    {project && <>
-      {' / '}
-      <Link href={link(project)}>{project.name}</Link>
-    </>}
-  </div>;
-}
-
 function ProjectItem({project, auth}: { project: Project, auth: Auth | undefined }) {
   if (!project.leaf) {
     return (
-      <Link href={`/projects?id=${encodeURIComponent(project.id)}`}>
-        <a className={css.item}>
-          <span className={css.name}>{project.name}</span>
-        </a>
+      <Link href={`/projects?id=${encodeURIComponent(project.id)}`} className={css.item}>
+        <span className={css.name}>{project.name}</span>
       </Link>
     );
   }
 
   return (
-    <Link href={`/projects/table?id=${encodeURIComponent(project.id)}`}>
-      <a className={css.item}>
-        <span className={css.name}>{project.name}</span>
-        <ProjectLeafDetails project={project} auth={auth}/>
-      </a>
+    <Link href={`/projects/table?id=${encodeURIComponent(project.id)}`} className={css.item}>
+      <span className={css.name}>{project.name}</span>
+      <ProjectLeafDetails project={project} auth={auth}/>
     </Link>
   );
 }

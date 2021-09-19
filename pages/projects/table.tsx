@@ -5,12 +5,12 @@ import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, useLayoutEffect,
 import {toast} from "react-toastify";
 import {Button, Toolbar} from "../../components/button";
 import {Modal} from "../../components/modal";
+import {Navbar} from "../../components/navbar";
 import {useAuthOrRedirect} from "../../src/auth";
 import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
+import {getLanguageName, getLocales, LanguageName} from "../../src/lang";
 import {useProjectChange, useProjectContent} from "../../src/loader";
 import {groupBy, sortFn, uniqueFn, useBooleanState} from "../../src/util";
-import {ProjectBreadcrumb} from "./index";
-import ISO6391 from 'iso-639-1';
 import css from "./table.module.css";
 
 export default function ProjectTable() {
@@ -23,22 +23,25 @@ export default function ProjectTable() {
   const [commitDialog, toggleCommitDialog] = useBooleanState(false);
   const [resetDialog, toggleResetDialog] = useBooleanState(false);
   const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
+  const [search, setSearch] = useState('');
 
   if (!auth || !projectId || loading || !project) {
     return <>
       <Head>
         <title>loading...</title>
       </Head>
+      <Navbar project={project}/>
       {error && <pre>{String(error)}</pre>}
       {isValidating && <div>loading...</div>}
     </>;
   }
 
-  const domains = groupBy(texels, texel => texel.domain ?? '')
+  const filteredTexels = texels
+    .filter(texel => texel.key.includes(search) || texel.value?.includes(search));
+  const domains = groupBy(filteredTexels, texel => texel.domain ?? '')
     .sort(sortFn(([domain]) => domain));
 
-  const locales = texels
-    .map(texel => texel.locale)
+  const locales = texels.map(texel => texel.locale)
     .concat(additionalLocales)
     .filter(uniqueFn())
     .sort();
@@ -47,8 +50,7 @@ export default function ProjectTable() {
     <Head>
       <title>{project.name}</title>
     </Head>
-
-    <ProjectBreadcrumb project={project}/>
+    <Navbar project={project} onSearch={setSearch}/>
 
     {domains.map(([domain, texels]) => (
       <Fragment key={domain}>
@@ -56,21 +58,18 @@ export default function ProjectTable() {
         <table className={css.table} key={domain}>
           <thead>
           <tr className={css.header}>
-            <th className={css.side} />
-            {locales.map(locale => {
-              const english = ISO6391.getName(locale);
-              const native = ISO6391.getNativeName(locale);
-              const name = english === native ? english : `${english} / ${native}`
-              return <th key={locale}>{name}</th>;
-            })}
+            <th className={css.side}/>
+            {locales.map(locale => (
+              <th key={locale}><LanguageName locale={locale} /></th>
+            ))}
             <th>
               <select onChange={(e) => {
                 setAdditionalLocales([...additionalLocales, e.target.value]);
                 e.target.value = '';
               }}>
                 <option value="">Add locale</option>
-                {ISO6391.getAllCodes().filter(locale => !locales.includes(locale)).map(locale => (
-                  <option key={locale} value={locale}>{ISO6391.getName(locale)}</option>
+                {getLocales().filter(locale => !locales.includes(locale)).map(locale => (
+                  <option key={locale} value={locale}>{getLanguageName(locale)}</option>
                 ))}
               </select>
             </th>
@@ -117,7 +116,7 @@ export default function ProjectTable() {
           await toast.promise(update, {
             pending: "Saving changes",
             success: "All changes saved",
-            error: "Failed to save changes",
+            error: {render: ({data}: { data: any }) => data.message ?? "Failed to save changes"},
           });
           toggleCommitDialog();
         }}>Commit</Button>
@@ -135,7 +134,7 @@ export default function ProjectTable() {
           await toast.promise(update, {
             pending: "Discarding changes",
             success: "All changes were discarded",
-            error: "Failed to discard changes"
+            error: {render: ({data}: { data: any }) => data.message ?? "Failed to discard changes"},
           });
           toggleResetDialog();
         }}>Reset</Button>
@@ -154,7 +153,7 @@ function Column({id, texel, change, setChanges}: { id: TexelId, texel?: Texel, c
       domain: id.domain,
       key: id.key,
       locale: id.locale,
-      value
+      value,
     }]);
   };
 
@@ -166,6 +165,7 @@ function Column({id, texel, change, setChanges}: { id: TexelId, texel?: Texel, c
   return <td className={className}>
     <Editor defaultValue={change?.value ?? texel?.value ?? ''}
             aria-label={`${id.domain} ${id.key} ${id.locale}`}
+            lang={id.locale}
             title={`original value: ${texel?.value}`}
             onData={changeHandler}/>
   </td>;
@@ -234,6 +234,7 @@ function Editor({defaultValue, onData, onBlur, onChange, ...props}: ValueProps) 
 
   return <div {...props}
               ref={objectRef}
+              className={css.editor}
               contentEditable={true}
               role="textbox"
               aria-multiline="true"

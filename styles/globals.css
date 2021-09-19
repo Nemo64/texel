@@ -2,6 +2,7 @@
   --line-width: 640px; /* maximum paragraph width */
   --line-height: 1.5rem;
   --padding: 0.75rem;
+  --sticky-top: 0rem;
 
   --z-index-dropdown: 1000;
   --z-index-sticky: 1020;
@@ -14,42 +15,41 @@
 
   --background: hsl(0, 0%, 100%);
   --background-alpha: hsla(0, 0%, 100%, 0.8);
-  --border-color: hsla(0, 0%, 87%, 0.5);
-  --shadow-color: hsla(0, 0%, 0%, 0.5);
+  --border-color: hsla(0, 0%, 50%, 0.2);
+  --shadow-color: hsla(0, 0%, 0%, 0.3);
 
   --text-color: hsla(0, 0%, 0%, 0.7);
   --text-color-bold: hsl(0, 0%, 0%);
+  --link-color: hsl(240, 40%, 30%);
 
-  --primary: hsl(10, 50%, 50%);
-  --primary-text: hsl(0, 0%, 100%);
-  --primary-highlight: hsl(10, 50%, 60%);
+  --primary: hsl(240, 40%, 30%);
+  --primary-text: hsl(240, 0%, 100%);
+  --primary-highlight: hsl(240, 40%, 40%);
+  --primary-background: hsla(240, 60%, 40%, .2);
 
-  --danger: hsl(0, 50%, 50%);
+  --danger: hsl(0, 40%, 50%);
   --danger-text: hsl(0, 0%, 100%);
-  --danger-highlight: hsl(0, 50%, 60%);
+  --danger-highlight: hsl(0, 40%, 60%);
+  --danger-background: hsla(0, 60%, 40%, .2);
 
-  --info: hsl(190, 50%, 50%);
+  --info: hsl(190, 40%, 50%);
   --info-text: hsl(0, 0%, 100%);
-  --info-highlight: hsl(190, 50%, 60%);
-
-  --primary-background: hsl(10, 50%, 80%);
-  --danger-background: hsl(0, 50%, 80%);
-  --info-background: hsl(190, 50%, 80%);
+  --info-highlight: hsl(190, 40%, 60%);
+  --info-background: hsla(190, 60%, 40%, .2);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: hsl(0, 6%, 14%);
-    --background-alpha: hsla(0, 6%, 14%, 0.9);
-    --border-color: hsla(0, 0%, 27%, 0.5);
-    --shadow-color: hsla(0, 0%, 0%, 0.5);
+    color-scheme: dark;
+
+    --background: hsl(240, 6%, 15%);
+    --background-alpha: hsla(240, 6%, 15%, 0.9);
+    /*--border-color: hsla(0, 0%, 27%, 0.5);*/
+    --shadow-color: hsla(0, 0%, 0%, 0.3);
 
     --text-color: hsla(0, 0%, 100%, 0.7);
     --text-color-bold: hsl(0, 0%, 100%);
-
-    --primary-background: hsl(10, 50%, 20%);
-    --danger-background: hsl(0, 50%, 20%);
-    --info-background: hsl(190, 50%, 20%);
+    --link-color: hsl(240, 40%, 70%);
   }
 }
 
@@ -85,11 +85,11 @@ p, dl {
 
 strong, b, th, h1, h2, h3, h4, h5, h6 {
   font-weight: inherit;
-  color: var(--text-color-bold);
+  text-shadow: .02em 0 currentColor;
 }
 
 a {
-  color: var(--primary);
+  color: var(--link-color);
   text-decoration: none;
 }
 
@@ -98,15 +98,20 @@ a:hover {
 }
 
 input, textarea, select {
-  background-color: var(--background);
+  background-color: transparent;
   border: 1px solid var(--border-color);
   margin: var(--padding);
-  padding: calc(var(--padding) - 1px);
-  color: var(--text-color);
+  padding: var(--padding);
+  color: inherit;
   font: inherit;
 }
 
 input:focus, textarea:focus, select:focus {
   outline: 1px solid var(--primary);
   box-shadow: 0 0 2px 2px var(--primary);
+}
+
+input::placeholder, textarea::placeholder {
+  color: inherit;
+  opacity: .8;
 }

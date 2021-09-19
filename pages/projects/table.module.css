@@ -1,5 +1,5 @@
 .table {
-  --column-width-side: min(240px, 40vw);
+  --column-width-side: min(300px, 40vw);
   --column-width: min(480px, 60vw);
 
   table-layout: fixed;
@@ -20,45 +20,39 @@
   max-width: var(--column-width);
   min-height: var(--line-height);
   padding: var(--padding);
-  background-color: var(--background);
 }
 
 .table tbody tr:hover,
 .table tbody tr:focus-within {
   --background: var(--primary-background);
-  --background-alpha: var(--primary-background);
+  /*--background-alpha: var(--primary-background);*/
+  background-color: var(--background);
 }
 
 tr.header {
-  --background: var(--background-alpha);
   position: sticky;
-  top: 0;
+  top: var(--sticky-top);
   z-index: var(--z-index-sticky);
+  background-color: var(--background-alpha);
 }
 
 tr.header th {
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 th.side {
-  --background: var(--background-alpha);
   --column-width: var(--column-width-side);
   position: sticky;
-  left: 0;
+  left: calc(var(--column-width-side) / -2);
   z-index: calc(var(--z-index-sticky) - 1);
-  border-right: 2px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background-color: var(--background-alpha);
+  transition: left .2s;
 }
 
-@media (max-width: 639px) {
-  th.side {
-    left: -25vw;
-    transition: left .2s;
-  }
-  th.side:hover {
-    left: 0;
-  }
+th.side:hover {
+  left: 0;
 }
-
 
 .key {
   --end-width: 50%;
@@ -101,8 +95,8 @@ th.side {
 }
 
 .table th:hover .key2 {
-  background-color: var(--background);
-  box-shadow: 1rem 0 1rem var(--background);
+  /*background-color:  var(--background-alpha);*/
+  box-shadow: .2rem 0 .2rem .2rem var(--background-alpha);
 }
 
 .table td {
@@ -124,7 +118,13 @@ th.side {
 }
 
 .table td select, .table th select,
-.table td [contenteditable="true"], .table th [contenteditable="true"] {
+.table td .editor, .table th .editor {
   margin: calc(var(--padding) * -1);
+  border: none;
   padding: var(--padding);
+  background-color: transparent;
+}
+
+.table td .editor, .table th .editor {
+  height: 100%;
 }
