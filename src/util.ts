@@ -1,3 +1,5 @@
+import {useCallback, useState} from "react";
+
 /**
  * This template function json stringifies all parameters for debugging.
  *
@@ -7,8 +9,6 @@
  * console.log(`something happened with ${JSON.stringify(obj)}`);
  * ```
  */
-import {useCallback, useState} from "react";
-
 export function msg(strings: TemplateStringsArray, ...parameters: any[]) {
   const result = [strings[0]];
 

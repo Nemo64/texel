@@ -6,13 +6,15 @@ import {Link} from "../../components/link";
 import {useAuth} from "../../src/auth";
 import {setDirectory} from "../../src/drivers/directory";
 
+const POST_AUTH_URL = `/projects`;
+
 export default function AuthDirectory() {
+  const {setAuth} = useAuth();
+  const router = useRouter();
   const [support, setSupport] = useState({
     checked: false,
     supported: false,
   });
-  const {setAuth} = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     setSupport({
@@ -22,14 +24,14 @@ export default function AuthDirectory() {
   }, []);
 
   useEffect(() => {
-    router.prefetch(`/projects`);
+    router.prefetch(POST_AUTH_URL);
   }, [router]);
 
   const chooseDirectory = async () => {
     const directory = await showDirectoryPicker();
     setDirectory(directory);
     setAuth({type: 'directory', token: directory.name});
-    await router.push(`/projects`);
+    await router.push(POST_AUTH_URL);
   };
 
   return <>
@@ -44,6 +46,11 @@ export default function AuthDirectory() {
         See <Link href="https://caniuse.com/native-filesystem-api">the support table</Link> to check
         which browser you must use for it to work.
       </p>
+      <p>
+        The local directory implementation <b>does not use git</b> but I strongly recommend you do.
+        It also means that there is no way to determine the feature branch specific texels.
+        Review the made changes and then commit them yourself.
+      </p>
       <Button onClick={chooseDirectory} disabled={!support.supported}>
         Select directory
       </Button>
@@ -54,6 +61,9 @@ export default function AuthDirectory() {
           sorry 😕
         </p>
       </>}
+      <Button href="/">
+        Back to startpage
+      </Button>
     </div>
   </>;
 }
