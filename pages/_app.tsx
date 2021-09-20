@@ -11,7 +11,6 @@ export default function MyApp({Component, pageProps}: AppProps) {
   useEffect(() => {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-    console.log('rerun');
   });
 
   return <>
