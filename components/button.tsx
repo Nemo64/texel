@@ -38,27 +38,25 @@ export const Button = forwardRef(function Button(
     };
   }
 
-  className = classNames({
-    [css.base]: true,
-    [css.disabled]: disabled,
-  }, className);
-
   if ("href" in props) {
-    ref = ref as ForwardedRef<HTMLAnchorElement>;
     return (
-      <Link role="button" ref={ref}
+      <Link role="button"
+            ref={ref as ForwardedRef<HTMLAnchorElement>}
             {...props}
-            prefetch={props.prefetch ?? (!disabled || undefined)}
+            prefetch={props.prefetch ?? !disabled}
+            href={disabled ? undefined : props.href}
             onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
-            className={className} aria-disabled={disabled || undefined}/>
+            className={classNames(css.base, disabled && css.disabled, className)}
+            aria-disabled={disabled || undefined}/>
     );
   } else {
-    ref = ref as ForwardedRef<HTMLButtonElement>;
     return (
-      <button type="button" ref={ref}
+      <button type="button"
+              ref={ref as ForwardedRef<HTMLButtonElement>}
               {...props}
               onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
-              className={className} disabled={disabled || undefined}/>
+              className={classNames(css.base, className)}
+              disabled={disabled || undefined}/>
     );
   }
 });
