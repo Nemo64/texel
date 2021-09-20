@@ -4,11 +4,11 @@ import {useRouter} from "next/router";
 import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, useLayoutEffect, useRef, useState} from "react";
 import {toast} from "react-toastify";
 import {Button, Toolbar} from "../../components/button";
+import {LanguageName, LocaleSelect} from "../../components/locale";
 import {Modal} from "../../components/modal";
 import {Navbar} from "../../components/navbar";
 import {useAuthOrRedirect} from "../../src/auth";
 import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
-import {getLanguageName, getLocales, LanguageName} from "../../src/lang";
 import {useProjectChange, useProjectContent} from "../../src/loader";
 import {groupBy, sortFn, uniqueFn, useBooleanState} from "../../src/util";
 import css from "./table.module.css";
@@ -63,15 +63,10 @@ export default function ProjectTable() {
               <th key={locale}><LanguageName locale={locale} /></th>
             ))}
             <th>
-              <select onChange={(e) => {
+              <LocaleSelect placeholder="Add locale" disabledLocales={locales} onChange={(e) => {
                 setAdditionalLocales([...additionalLocales, e.target.value]);
                 e.target.value = '';
-              }}>
-                <option value="">Add locale</option>
-                {getLocales().filter(locale => !locales.includes(locale)).map(locale => (
-                  <option key={locale} value={locale}>{getLanguageName(locale)}</option>
-                ))}
-              </select>
+              }} />
             </th>
           </tr>
           </thead>

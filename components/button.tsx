@@ -31,7 +31,9 @@ export const Button = forwardRef(function Button(
       const promise = originalClickHandler(event);
       if (promise && "finally" in promise) {
         setTmpDisabled(true);
-        promise.finally(() => setTmpDisabled(false));
+        promise.finally(() => {
+          setTmpDisabled(false);
+        });
       }
     };
   }
@@ -42,20 +44,21 @@ export const Button = forwardRef(function Button(
   }, className);
 
   if ("href" in props) {
-    const {href, prefetch, ...linkProps} = props;
     ref = ref as ForwardedRef<HTMLAnchorElement>;
     return (
-      <Link href={href} prefetch={prefetch ?? (!disabled || undefined)}
-            role="button" ref={ref} {...linkProps}
-            onClick={onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
-            className={className} aria-disabled={disabled}/>
+      <Link role="button" ref={ref}
+            {...props}
+            prefetch={props.prefetch ?? (!disabled || undefined)}
+            onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
+            className={className} aria-disabled={disabled || undefined}/>
     );
   } else {
     ref = ref as ForwardedRef<HTMLButtonElement>;
     return (
-      <button type="button" ref={ref} {...props}
-              onClick={onClick as (e: MouseEvent<HTMLButtonElement>) => void}
-              className={className} disabled={disabled}/>
+      <button type="button" ref={ref}
+              {...props}
+              onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
+              className={className} disabled={disabled || undefined}/>
     );
   }
 });

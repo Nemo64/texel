@@ -5,15 +5,18 @@ import {Link} from "../components/link";
 import css from "./index.module.css";
 
 export default function Home() {
+  const title = 'Texel - Text element editor';
+  const description = 'A tool to easily view and edit text/translation files in your software projects.';
+
   return <>
     <Head>
-      <title>Texel - Text element editor</title>
-      <meta name="description" content="A tool to easily view and edit text/translation files in your software projects."/>
+      <title>{title}</title>
+      <meta name="description" content={description}/>
     </Head>
     <div className={css.lead}>
       <div className="centered">
-        <h1><strong>Texel</strong> - <b>Tex</b>t <b>El</b>ement editor</h1>
-        <p>A tool to easily view and edit text/translation files in your software projects.</p>
+        <h1>{title}</h1>
+        <p>{description}</p>
       </div>
       <div className={css.div}>
         <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"
@@ -34,7 +37,7 @@ export default function Home() {
 
       <h2>How do I use the Texel editor?</h2>
       <p>
-        Just choose where your project source code lives from the list below.
+        Select the source provider of your choice from the list below.
       </p>
 
       <Button href={`/auth/bitbucket`} className={classNames(css.loginButton, css.bitbucket)}>
@@ -44,9 +47,28 @@ export default function Home() {
         Use local directory
       </Button>
 
+      <h2>What are &quot;Texels&quot;?</h2>
+      <p>
+        Texels is an art word for Text-Element,
+        just like <Link href="https://en.wikipedia.org/wiki/Pixel">
+        Pixel is for Picture-Element</Link>.
+        It is the smallest addressable text element in an application.
+      </p>
+      <p>
+        Sometimes those are called &quot;keys&quot; or &quot;translations&quot;.
+        But since &quot;keys&quot; has many other meanings and
+        you might use this tool to edit texts and not to translate them,
+        I found &quot;translations&quot; misleading as well.
+      </p>
+      <p>
+        Texel is also the name <Link href="https://en.wikipedia.org/wiki/Texel">
+        of an Island in the Netherlands</Link>.
+        That has nothing to do with this tool, but I like to mention it.
+      </p>
+
       <h2>How does it work?</h2>
       <p>
-        Texel will use your providers api (directly from your browser)
+        Texel will use your source providers api (directly from your browser)
         and search for files based on common naming patterns.
         These naming patterns are currently:
       </p>
@@ -63,12 +85,13 @@ export default function Home() {
       <h2>Can I trust this tool?</h2>
       <p>
         You should never fully trust anything that is hosted on the internet.
-        The <Link href="https://github.com/Nemo64/texel">source code is on GitHub</Link> and you can host it yourself if you like.
+        The <Link href="https://github.com/Nemo64/texel">source code is on GitHub</Link> and you can
+        host it yourself if you like.
         It is currently <Link href="https://vercel.com/">hosted on Vercel</Link>.
       </p>
       <p>
         The entire tool is designed to run fully in the browser
-        and never transmit any login credentials or files to the server.
+        and never transmit any login credentials or files to anyone but your source provider.
       </p>
 
     </div>

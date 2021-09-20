@@ -9,7 +9,14 @@ const IGNORE_FILE_NAME = new RegExp([
   'vendor',
 ].join('|'));
 
-const HANDLE_SYMBOL = Symbol.for(import.meta.url);
+/**
+ * The directory handle is stored in the "window" object.
+ * That makes it survives hot module reloads.
+ *
+ * If the build does not use hot module replacement, then I use an anonymous.
+ * This ensures that no script or browser extension can easily grab the handle.
+ */
+const HANDLE_SYMBOL = "hot" in module ? Symbol.for(import.meta.url) : Symbol(import.meta.url);
 
 export function setDirectory(handle: FileSystemDirectoryHandle | undefined) {
   console.log('update directory handle', handle);
@@ -28,19 +35,14 @@ export class DirectoryDriver implements TexelDriver {
   constructor(private readonly dirName: string) {
     const directoryHandle = getDirectory()
     if (!directoryHandle || directoryHandle.name !== this.dirName) {
-      throw new Error(`The directory share is missing. Log in again.`);
+      throw new Error(msg`The directory share for ${this.dirName} is missing. Log in again.`);
     }
 
     this.directoryHandle = directoryHandle;
   }
 
-  async list(id: Project["id"]): Promise<Texel[]> {
-    const result = [] as Promise<Texel[]>[];
-    for (const {path, handle} of await this.scan({handle: this.directoryHandle, path: ''})) {
-      result.push(handle.getFile().then(async file => parseL10nFile(path, await file.text())))
-    }
-
-    return (await Promise.all(result)).flat();
+  list(id: Project["id"]): Promise<Texel[]> {
+    return this.scan({handle: this.directoryHandle, path: ''});
   }
 
   async update(id: Project["id"], changes: Texel[]): Promise<void> {
@@ -89,8 +91,8 @@ export class DirectoryDriver implements TexelDriver {
     return await handle.getFileHandle(paths[paths.length -1], options);
   }
 
-  private async scan(dir: WrappedFileHandle<FileSystemDirectoryHandle>): Promise<WrappedFileHandle<FileSystemFileHandle>[]> {
-    const result = [] as Promise<WrappedFileHandle<FileSystemFileHandle>[]>[];
+  private async scan(dir: WrappedFileHandle<FileSystemDirectoryHandle>): Promise<Texel[]> {
+    const result = [] as Promise<Texel[]>[];
     for await (const handle of dir.handle.values()) {
       if (IGNORE_FILE_NAME.test(handle.name)) {
         continue;
@@ -100,7 +102,9 @@ export class DirectoryDriver implements TexelDriver {
       switch (handle.kind) {
         case "file":
           if (isL10nFile(path)) {
-            result.push(Promise.resolve([{handle, path}]));
+            result.push(handle.getFile()
+              .then(file => file.text())
+              .then(text => parseL10nFile(path, text)));
           }
           break;
         case "directory":

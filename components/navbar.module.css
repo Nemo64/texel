@@ -32,8 +32,14 @@
 
 .breadcrumb {
   flex-grow: 1;
+  display: flex;
+  align-items: baseline;
   white-space: nowrap;
   overflow: auto;
+}
+
+.breadcrumb > .input {
+  flex-grow: 1;
 }
 
 .login {

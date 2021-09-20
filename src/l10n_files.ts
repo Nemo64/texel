@@ -1,6 +1,6 @@
 import yaml from "js-yaml";
 import {Texel} from "./drivers/types";
-import {getLocales} from "./lang";
+import {getLocales} from "./locale";
 import {groupBy, msg, wrapError} from "./util";
 
 /**

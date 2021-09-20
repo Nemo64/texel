@@ -21,7 +21,7 @@
 
   --text-color: hsla(0, 0%, 0%, 0.7);
   --text-color-bold: hsl(0, 0%, 0%);
-  --link-color: hsl(240, 40%, 30%);
+  --link-color: hsl(240, 60%, 50%);
 
   --primary: hsl(240, 40%, 30%);
   --primary-text: hsl(240, 0%, 100%);
@@ -50,7 +50,7 @@
 
     --text-color: hsla(0, 0%, 100%, 0.7);
     --text-color-bold: hsl(0, 0%, 100%);
-    --link-color: hsl(240, 40%, 70%);
+    --link-color: hsl(240, 60%, 80%);
   }
 }
 
