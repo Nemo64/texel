@@ -17,14 +17,28 @@ interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement> {
   disabled?: boolean;
 }
 
+/**
+ * This abstracts the html away from the concept of a "button".
+ *
+ * - <Button href="https://www.example.com">Link Text</Button>
+ * - <Button href="/local/page">Link text</Button>
+ * - <Button onClick={() => alert("hi")}>Button text</Button>
+ * - <Button type="submit">Submit text</Button>
+ *
+ * All those 4 example create fairly different html but look and feel the same.
+ * Also, onClick handlers, that return a promise, will disable the button until it resolves.
+ *
+ * Don't use this for inline links, use {@see Link} instead.
+ */
 export const Button = forwardRef(function Button(
   {onClick, className, ...props}: LinkAttributes | ButtonAttributes,
   ref: ForwardedRef<HTMLAnchorElement> | ForwardedRef<HTMLButtonElement>,
 ): ReactElement {
 
-  // if onClick returns a promise, then disable the button until the promise resolves
   const [tmpDisabled, setTmpDisabled] = useState(false);
   const disabled = props.disabled || tmpDisabled;
+
+  // if onClick returns a promise, then disable the button until the promise resolves
   if (onClick !== undefined) {
     const originalClickHandler = onClick;
     onClick = (event: any) => {

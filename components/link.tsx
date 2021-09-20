@@ -7,6 +7,13 @@ interface LinkAttributes extends AnchorHTMLAttributes<HTMLAnchorElement> {
   prefetch?: boolean;
 }
 
+/**
+ * This component abstracts away the plain html <a href=""></a> element.
+ *
+ * - all links get rel="noreferrer" to ensure opener and refererrer aren't leaked.
+ * - remote links (or links that do not start with "/") will get target="_blank".
+ * - local links will be wrapped by the next.js {@see NextLink} component.
+ */
 export const Link = forwardRef(function Link(
   {href, prefetch, ...props}: LinkAttributes,
   ref: ForwardedRef<HTMLAnchorElement>,
