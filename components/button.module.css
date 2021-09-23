@@ -9,23 +9,20 @@
   font: inherit;
   cursor: pointer;
 
-  --color: var(--primary);
-  --color-hover: var(--primary-highlight);
-  --color-disabled: var(--primary-background);
   color: var(--primary-text);
-  background-color: var(--color);
+  background-color: var(--primary);
   box-shadow: 0 .2em 1em var(--shadow-color);
 }
 
 .base:disabled, .base.disabled {
   cursor: not-allowed;
+  color: inherit;
+  background-color: var(--primary-background);
   box-shadow: 0 .1em .5em var(--shadow-color);
-  opacity: .6;
-  filter: saturate(50%);
 }
 
 .base:hover:not(:disabled):not(.disabled) {
-  --color: var(--color-hover);
+  background-color: var(--primary-highlight);
 }
 
 .toolbar {

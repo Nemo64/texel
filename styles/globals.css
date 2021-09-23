@@ -23,6 +23,24 @@
   --text-color-bold: hsl(0, 0%, 0%);
   --link-color: hsl(240, 60%, 50%);
 
+  /**
+   * Here is the naming scheme for the color variables:
+   *
+   * [color-name]:
+   *   a saturated color
+   *
+   * [color-name]-text:
+   *   the color text should have on top of the primary color
+   *
+   * [color-name]-highlight:
+   *   slightly different version of that color used for hover or focus
+   *
+   * [color-name]-background:
+   *   highly transparent version of the color that must not require the text color change.
+   *   usage should be combined with "color: inherit", if text is involved.
+   *   this color usually needs higher saturation to compensate for the transparency.
+   */
+
   --primary: hsl(240, 40%, 30%);
   --primary-text: hsl(240, 0%, 100%);
   --primary-highlight: hsl(240, 40%, 40%);
@@ -45,7 +63,7 @@
 
     --background: hsl(240, 6%, 15%);
     --background-alpha: hsla(240, 6%, 15%, 0.9);
-    /*--border-color: hsla(0, 0%, 27%, 0.5);*/
+    --border-color: hsla(0, 0%, 50%, 0.2);
     --shadow-color: hsla(0, 0%, 0%, 0.3);
 
     --text-color: hsla(0, 0%, 100%, 0.7);

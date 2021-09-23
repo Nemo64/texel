@@ -14,8 +14,8 @@
 }
 
 .bitbucket {
-  --color: hsl(216, 92%, 34%);
-  --color-hover: hsl(216, 92%, 44%);
+  --primary: hsl(216, 92%, 34%);
+  --primary-highlight: hsl(216, 92%, 44%);
 }
 
 .div {
