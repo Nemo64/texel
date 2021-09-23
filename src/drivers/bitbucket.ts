@@ -51,7 +51,7 @@ export class BitbucketDriver implements TexelDriver {
       const mainBranch = (await branchModel).development.branch;
       return [
         branches.find(branch => mainBranch.name === branch.name) as Project,
-        ...branches.filter(branch => mainBranch.name !== branch.name).reverse()
+        ...branches.filter(branch => mainBranch.name !== branch.name).reverse(),
       ];
     }
 
@@ -76,6 +76,11 @@ export class BitbucketDriver implements TexelDriver {
     for await (const filePage of this.files(repositoryId, branch.target.hash)) {
       for (const file of filePage) {
         if (!isL10nFile(file.path)) {
+          continue;
+        }
+
+        const ignoredAttributes: TreeEntry["attributes"] = ['link', 'subrepository', 'binary'];
+        if (file.attributes.some(attribute => ignoredAttributes.includes(attribute))) {
           continue;
         }
 
@@ -377,11 +382,12 @@ interface BranchModel {
 /**
  * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/src
  */
-const TREE_ENTRY_FIELDS = ['type', 'path'];
+const TREE_ENTRY_FIELDS = ['type', 'path', 'attributes'];
 
 interface TreeEntry {
   type: "commit_directory" | "commit_file";
   path: string;
+  attributes: Array<"link" | "executable" | "subrepository" | "binary">;
 }
 
 /**
