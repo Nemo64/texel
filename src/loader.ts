@@ -11,8 +11,18 @@ import {msg} from "./util";
 export function useProjectListing(auth?: Auth, id?: string) {
   const args = auth ? [auth, id] : null;
   const {data, isValidating, error} = useSWR(args, projectList);
-  error && console.error('useProjectListing', error);
-  return {childProjects: data?.childProjects ?? [], project: data?.project, isValidating, error, loading: !data};
+
+  if (error) {
+    console.error('useProjectListing', error);
+  }
+
+  return {
+    loading: !data,
+    childProjects: data?.childProjects ?? [],
+    project: data?.project,
+    isValidating,
+    error,
+  };
 }
 
 interface ProjectListing {
@@ -41,7 +51,11 @@ const projectList: SWRConfiguration<ProjectListing> = {
 export function useProjectContent(auth?: Auth, id?: string) {
   const args = auth && id ? [auth, id] : null;
   const {data, isValidating, error} = useSWR(args, projectContent);
-  error && console.error('useProjectContent', error);
+
+  if (error) {
+    console.error('useProjectContent', error);
+  }
+
   const setTexels = useCallback(async (texels: Texel[]) => {
     if (!auth || !id) {
       throw new Error(msg`Auth and id must be defined. Got ${auth} ${id}`);
@@ -53,10 +67,10 @@ export function useProjectContent(auth?: Auth, id?: string) {
   }, [auth, id]);
 
   return {
+    loading: !data,
     project: data?.project,
     texels: data?.texels ?? [],
     setTexels,
-    loading: !data,
     isValidating,
     error,
   };
@@ -89,7 +103,11 @@ const projectContent: SWRConfiguration<ProjectContent> = {
 export function useProjectChange(auth?: Auth, id?: string) {
   const args = auth && id ? [auth, id, 'changes'] : null;
   const {data, isValidating, error} = useSWR(args, projectChanges);
-  error && console.error('useProjectChange', error);
+
+  if (error) {
+    console.error('useProjectChange', error);
+  }
+
   const setChanges = useCallback(async (texels: Texel[]) => {
     if (!auth || !id) {
       throw new Error(msg`Auth and id must be defined. Got ${auth} ${id}`);
@@ -100,7 +118,12 @@ export function useProjectChange(auth?: Auth, id?: string) {
     await mutate([auth, id, 'changes']);
   }, [auth, id]);
 
-  return {changes: data ?? [], setChanges, isValidating, error};
+  return {
+    changes: data ?? [],
+    setChanges,
+    isValidating,
+    error,
+  };
 }
 
 type ProjectChanges = Texel[];
