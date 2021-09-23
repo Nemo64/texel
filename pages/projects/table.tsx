@@ -20,8 +20,6 @@ export default function ProjectTable() {
   const {project, texels, setTexels, loading, isValidating, error} = useProjectContent(auth, projectId);
   const {changes, setChanges} = useProjectChange(auth, projectId);
 
-  const [commitDialog, toggleCommitDialog] = useBooleanState(false);
-  const [resetDialog, toggleResetDialog] = useBooleanState(false);
   const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
   const [search, setSearch] = useState('');
 
@@ -38,6 +36,7 @@ export default function ProjectTable() {
 
   const filteredTexels = texels
     .filter(texel => texel.key.includes(search) || texel.value?.includes(search));
+
   const domains = groupBy(filteredTexels, texel => texel.domain ?? '')
     .sort(sortFn(([domain]) => domain));
 
@@ -53,44 +52,54 @@ export default function ProjectTable() {
     <Navbar project={project} onSearch={setSearch}/>
 
     {domains.map(([domain, texels]) => (
-      <Fragment key={domain}>
-        <h2>{domain}</h2>
-        <table className={css.table} key={domain}>
-          <thead>
-          <tr className={css.header}>
-            <th className={css.side}/>
-            {locales.map(locale => (
-              <th key={locale}><LanguageName locale={locale} /></th>
-            ))}
-            <th>
-              <LocaleSelect placeholder="Add locale" disabledLocales={locales} onChange={(e) => {
-                setAdditionalLocales([...additionalLocales, e.target.value]);
-                e.target.value = '';
-              }} />
+      <table key={domain} className={css.table}>
+        <thead>
+        <tr className={css.header}>
+          <th className={css.side}>
+            {domain}
+          </th>
+          {locales.map(locale => (
+            <th key={locale}>
+              <LanguageName locale={locale}/>
             </th>
-          </tr>
-          </thead>
-          <tbody>
-          {groupBy(texels, texel => texel.key)
-            .sort(sortFn(([key]) => key))
-            .map(([key, texels]) => (
-              <tr key={key}>
-                <th className={css.side}>
-                  <Key value={key}/>
-                </th>
-                {locales.map(locale => {
-                  const id: TexelId = {domain, key, locale};
-                  const texel = texels.find(texel => sameTexelId(texel, id));
-                  const change = changes.find(change => sameTexelId(change, id));
-                  return <Column key={locale} {...{texel, change, id, setChanges}}/>;
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Fragment>
+          ))}
+          <th>
+            <LocaleSelect placeholder="Add locale" disabledLocales={locales} onChange={(e) => {
+              setAdditionalLocales([...additionalLocales, e.target.value]);
+              e.target.value = '';
+            }}/>
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        {groupBy(texels, texel => texel.key)
+          .sort(sortFn(([key]) => key))
+          .map(([key, texels]) => (
+            <tr key={key}>
+              <th className={css.side}>
+                <Key value={key}/>
+              </th>
+              {locales.map(locale => {
+                const id: TexelId = {domain, key, locale};
+                const texel = texels.find(texel => sameTexelId(texel, id));
+                const change = changes.find(change => sameTexelId(change, id));
+                return <Column key={locale} {...{texel, change, id, setChanges}}/>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     ))}
 
+    <TableToolbar changes={changes} setChanges={setChanges} setTexels={setTexels}/>
+  </>;
+}
+
+function TableToolbar({changes, setChanges, setTexels}: { changes: Texel[], setChanges: (changes: Texel[]) => Promise<void>, setTexels: (changes: Texel[]) => Promise<void> }) {
+  const [commitDialog, toggleCommitDialog] = useBooleanState(false);
+  const [resetDialog, toggleResetDialog] = useBooleanState(false);
+
+  return <>
     <Toolbar>
       <Button disabled={changes.length === 0} onClick={toggleCommitDialog}>
         Commit changes
@@ -136,7 +145,6 @@ export default function ProjectTable() {
         <Button onClick={toggleResetDialog}>Close</Button>
       </Toolbar>
     </Modal>
-
   </>;
 }
 
@@ -227,11 +235,13 @@ function Editor({defaultValue, onData, onBlur, onChange, ...props}: ValueProps) 
     }
   };
 
-  return <div {...props}
-              ref={objectRef}
-              className={css.editor}
-              contentEditable={true}
-              role="textbox"
-              aria-multiline="true"
-              onBlur={blurHandler}/>;
+  return (
+    <div {...props}
+         ref={objectRef}
+         className={css.editor}
+         contentEditable={true}
+         role="textbox"
+         aria-multiline="true"
+         onBlur={blurHandler}/>
+  );
 }

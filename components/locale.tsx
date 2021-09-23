@@ -1,12 +1,15 @@
-import {SelectHTMLAttributes, useEffect, useMemo, useState} from "react";
+import {ForwardedRef, forwardRef, SelectHTMLAttributes, useEffect, useMemo, useState} from "react";
 import {getLanguageName, getLocaleInfo, getLocales} from "../src/locale";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  placeholder: string
+  placeholder?: string
   disabledLocales?: string[];
 }
 
-export function LocaleSelect({placeholder, disabledLocales, ...props}: SelectProps) {
+export const LocaleSelect = forwardRef(function LocaleSelect(
+  {placeholder, disabledLocales, ...props}: SelectProps,
+  ref: ForwardedRef<HTMLSelectElement>
+) {
   const [preferredLocales, setPreferredLocales] = useState([] as ReadonlyArray<string>);
 
   useEffect(() => {
@@ -19,11 +22,13 @@ export function LocaleSelect({placeholder, disabledLocales, ...props}: SelectPro
       ['System', preferredLocales.filter(locale => locales.includes(locale))],
       ['Others', locales.filter(locale => !preferredLocales.includes(locale))],
     ] as const;
-    return groups.filter(group => group[1].length > 0);
+    return groups.filter(([name, values]) => {
+      return values.length > 0;
+    });
   }, [preferredLocales]);
 
   return (
-    <select {...props}>
+    <select {...props} ref={ref}>
       {placeholder && <option value="">{placeholder}</option>}
       {groups.map(([label, groupLocales]) => (
         <optgroup key={label} label={label}>
@@ -36,7 +41,7 @@ export function LocaleSelect({placeholder, disabledLocales, ...props}: SelectPro
       ))}
     </select>
   );
-}
+});
 
 /**
  * Similar to {@see getLanguageName} but with added html spice.

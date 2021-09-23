@@ -5,7 +5,7 @@
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  margin: var(--padding) 0;
+  margin: 0;
 }
 
 .table, .table tr {
@@ -33,7 +33,8 @@ tr.header {
   position: sticky;
   top: var(--sticky-top);
   z-index: var(--z-index-sticky);
-  background-color: var(--background-alpha);
+  background-color: var(--primary);
+  color: var(--primary-text);
 }
 
 tr.header th {
@@ -42,28 +43,28 @@ tr.header th {
 
 th.side {
   --column-width: var(--column-width-side);
+}
+
+tbody th.side {
   position: sticky;
   left: calc(var(--column-width-side) / -2);
   z-index: calc(var(--z-index-sticky) - 1);
+  overflow: hidden;
+
   border-right: 1px solid var(--border-color);
   background-color: var(--background-alpha);
   transition: left .2s;
 }
 
-th.side:hover {
+tbody th.side:hover {
   left: 0;
-}
-
-.key {
-  --end-width: 50%;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  white-space: nowrap;
-  text-align: center;
-  overflow: hidden;
+  z-index: var(--z-index-sticky);
+  overflow: visible;
+  text-shadow: 1px 1px 0 var(--background-alpha),
+  -1px 1px 0 var(--background-alpha),
+  -1px -1px 0 var(--background-alpha),
+  1px -1px 0 var(--background-alpha),
+  0 0 2px currentColor;
 }
 
 .key1, .key2 {
@@ -73,30 +74,18 @@ th.side:hover {
   height: 100%;
   padding: var(--padding) 0;
   text-align: right;
+  white-space: nowrap;
 }
 
 .key1:not(:only-child) {
   left: unset;
-  right: var(--end-width);
+  right: 50%;
 }
 
 .key2:not(:only-child) {
-  left: calc(100% - var(--end-width));
-  min-width: var(--end-width);
+  left: 50%;
+  min-width: 50%;
   text-align: left;
-}
-
-.table th:hover {
-  z-index: var(--z-index-sticky);
-}
-
-.table th:hover .key {
-  overflow: visible;
-}
-
-.table th:hover .key2 {
-  /*background-color:  var(--background-alpha);*/
-  box-shadow: .2rem 0 .2rem .2rem var(--background-alpha);
 }
 
 .table td {
