@@ -1,12 +1,38 @@
 import classNames from "classnames";
 import Head from 'next/head';
+import {useRouter} from "next/router";
 import {Button} from "../components/button";
 import {Link} from "../components/link";
+import {useAuth} from "../src/auth";
+import {setDirectory} from "../src/drivers/directory";
+import {useSupportCheck} from "../src/hooks";
 import css from "./index.module.css";
 
 export default function Home() {
   const title = 'Texel - Text element editor';
   const description = 'A tool to easily view and edit text/translation files in your software projects.';
+
+  const router = useRouter();
+  const {setAuth} = useAuth();
+
+  const [directorySupported, directorySupportChecked] = useSupportCheck(() => {
+    return "showDirectoryPicker" in window;
+  });
+  const chooseDirectory = async () => {
+    router.prefetch(`/projects`).catch(console.error);
+    try {
+      const directory = await showDirectoryPicker();
+      setDirectory(directory);
+      setAuth({type: 'directory', token: directory.name});
+      await router.push(`/projects`);
+    } catch (e) {
+      if (e instanceof DOMException && e.code === DOMException.ABORT_ERR) {
+        console.log('choose directory canceled', e);
+      } else {
+        throw e;
+      }
+    }
+  };
 
   return <>
     <Head>
@@ -43,9 +69,18 @@ export default function Home() {
       <Button href={`/auth/bitbucket`} className={classNames(css.loginButton, css.bitbucket)}>
         Use Bitbucket
       </Button>
-      <Button href={'/auth/directory'} className={classNames(css.loginButton, css.directory)}>
+      <Button onClick={chooseDirectory} disabled={!directorySupported}
+              className={classNames(css.loginButton, css.directory)}>
         Use local directory
       </Button>
+
+      {directorySupportChecked && !directorySupported && <>
+        <p>
+          It looks like your browser does not support
+          the <Link href="https://github.com/WICG/file-system-access">File System Access API</Link>.
+          This means you can&apos;t use local directories, sorry 😕
+        </p>
+      </>}
 
       <h2>What are &quot;Texels&quot;?</h2>
       <p>

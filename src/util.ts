@@ -1,5 +1,3 @@
-import {useCallback, useState} from "react";
-
 /**
  * This template function json stringifies all parameters for debugging.
  *
@@ -30,16 +28,6 @@ export function wrapError(e: any, message: string): { message: string } {
   } else {
     return new Error(`${message}\n${JSON.stringify(e)}`);
   }
-}
-
-/**
- * Wraps a boolean state variable.
- * Instead of the normal setter, a toggler is returned.
- */
-export function useBooleanState(init: boolean): [boolean, () => void, (state: boolean) => void] {
-  const [state, setState] = useState(init);
-  const toggle = useCallback(() => setState(!state), [state, setState]);
-  return [state, toggle, setState];
 }
 
 /**

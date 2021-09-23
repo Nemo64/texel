@@ -9,8 +9,9 @@ import {Modal} from "../../components/modal";
 import {Navbar} from "../../components/navbar";
 import {useAuthOrRedirect} from "../../src/auth";
 import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
+import {useBooleanState} from "../../src/hooks";
 import {useProjectChange, useProjectContent} from "../../src/loader";
-import {groupBy, sortFn, uniqueFn, useBooleanState} from "../../src/util";
+import {groupBy, sortFn, uniqueFn} from "../../src/util";
 import css from "./table.module.css";
 
 export default function ProjectTable() {
