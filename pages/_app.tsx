@@ -9,14 +9,16 @@ import css from "./_app.module.css";
 
 export default function MyApp({Component, pageProps}: AppProps) {
   useEffect(() => {
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-  });
+    updateScrollWidth();
+    window.addEventListener('resize', updateScrollWidth);
+    return () => window.removeEventListener('resize', updateScrollWidth);
+  }, []);
 
   return <>
     <Head>
       <title>Texel Editor</title>
       <meta name="viewport" content="initial-scale=1.0, width=device-width"/>
+      <meta property="og:site_name" content="Texel editor"/>
     </Head>
     <div className={css.main}>
       <Component {...pageProps} />
@@ -32,7 +34,8 @@ export default function MyApp({Component, pageProps}: AppProps) {
           THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
           IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
           PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-          BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+          BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+          TORT
           OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
           DEALINGS IN THE SOFTWARE.
         </p>
@@ -40,4 +43,10 @@ export default function MyApp({Component, pageProps}: AppProps) {
     </footer>
     <ToastContainer/>
   </>;
+}
+
+function updateScrollWidth() {
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+
 }
