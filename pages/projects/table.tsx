@@ -28,6 +28,7 @@ export default function ProjectTable() {
     return <>
       <Head>
         <title>loading...</title>
+        <meta name="robots" content="noindex, nofollow"/>
       </Head>
       <Navbar project={project}/>
       {error && <pre>{String(error)}</pre>}
@@ -49,6 +50,7 @@ export default function ProjectTable() {
   return <>
     <Head>
       <title>{project.name}</title>
+      <meta name="robots" content="noindex, nofollow"/>
     </Head>
     <Navbar project={project} onSearch={setSearch}/>
 

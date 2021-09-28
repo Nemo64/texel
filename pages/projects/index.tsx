@@ -20,6 +20,7 @@ export default function Projects() {
     return <>
       <Head>
         <title>loading...</title>
+        <meta name="robots" content="noindex, nofollow"/>
       </Head>
       <Navbar project={project}/>
       {error && <pre>{String(error)}</pre>}
@@ -33,6 +34,7 @@ export default function Projects() {
   return <>
     <Head>
       <title>{project?.name ?? 'Project list'}</title>
+      <meta name="robots" content="noindex, nofollow"/>
     </Head>
     <Navbar project={project} onSearch={setSearch}/>
 
