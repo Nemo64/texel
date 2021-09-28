@@ -1,4 +1,4 @@
-import ReactModal, {Classes} from 'react-modal';
+import ReactModal, {Classes as ModalClasses} from 'react-modal';
 import {parseMS} from "../src/util";
 import css from "./modal.module.css";
 
@@ -12,13 +12,13 @@ interface ModalProps {
   children: any,
 }
 
-const overlayClassName: Classes = {
+const overlayClassName: ModalClasses = {
   base: css.overlay,
   afterOpen: css.overlayOpen,
   beforeClose: css.overlayClosing,
-}
+};
 
-const className: Classes = {
+const className: ModalClasses = {
   base: css.modal,
   afterOpen: css.modalOpen,
   beforeClose: css.modalClosing,
@@ -32,7 +32,9 @@ export function Modal({isOpen, onRequestClose, children}: ModalProps) {
                 className={className}
                 closeTimeoutMS={parseMS(css.hideDelay)}>
       {children}
-      <button type="button" className={css.close} onClick={onRequestClose}>&times;</button>
+      <button type="button" className={css.close} onClick={onRequestClose} aria-label="Close modal">
+        &times;
+      </button>
     </ReactModal>
   );
 }

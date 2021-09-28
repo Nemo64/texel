@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {MutableRefObject, useEffect, useRef} from "react";
 import {useAuth} from "../src/auth";
 import {Project} from "../src/drivers/types";
@@ -11,18 +10,16 @@ interface NavbarProps {
 }
 
 export function Navbar (props: NavbarProps) {
-  return (
-    <div className={css.header}>
-      <ProjectBreadcrumb {...props} />
-      <LoginStatus />
-    </div>
-  );
+  return <>
+    <LoginStatus/>
+    <ProjectBreadcrumb {...props} />
+  </>;
 }
 
-export function ProjectBreadcrumb({project, onSearch}: NavbarProps) {
+function ProjectBreadcrumb({project, onSearch}: NavbarProps) {
   const link = (project: Project) => project.leaf
     ? `/projects/table?id=${encodeURIComponent(project.id)}`
-    : `/projects?id=${encodeURIComponent(project.id)}`
+    : `/projects?id=${encodeURIComponent(project.id)}`;
 
   const searchRef = useRef() as MutableRefObject<HTMLInputElement>;
   useEffect(() => {
@@ -32,39 +29,59 @@ export function ProjectBreadcrumb({project, onSearch}: NavbarProps) {
     }
   }, [onSearch, project?.id]);
 
-  return <div className={css.breadcrumb}>
-    <Button className={css.button} href={`/projects`}>Texel</Button>
-    {project?.parent && <>
-      {' / '}
-      <Button className={css.button} href={link(project.parent)}>{project.parent.name}</Button>
-    </>}
-    {project && <>
-      {' / '}
-      <Button className={css.button} href={link(project)}>{project.name}</Button>
-    </>}
-    {onSearch && <>
-      {' / '}
-      <input type="search"
-             autoComplete="false"
-             placeholder="search term..."
-             className={css.input}
-             ref={searchRef}
-             onInput={e => onSearch(e.currentTarget.value)} />
-    </>}
-  </div>;
+  return (
+    <nav aria-label="Breadcrumb" className={css.breadcrumb}>
+      <ol>
+        <li>
+          <Button className={css.link} href={`/projects`} aria-label="Root project selection">
+            Texel editor
+          </Button>
+        </li>
+        {project?.parent && (
+          <li>
+            <Button className={css.link} href={link(project.parent)}>
+              {project.parent.name}
+            </Button>
+          </li>
+        )}
+        {project && (
+          <li>
+            <Button className={css.link} href={link(project)} active={true}>
+              {project.name}
+            </Button>
+          </li>
+        )}
+        {onSearch && (
+          <li className={css.breadcrumbTail}>
+            <input type="search"
+                   autoComplete="false"
+                   placeholder={project ? `Search in ${project.name}` : `Search project`}
+                   aria-label={project ? `Search in ${project.name}` : `Search project`}
+                   className={css.input}
+                   ref={searchRef}
+                   onInput={e => onSearch(e.currentTarget.value)}/>
+          </li>
+        )}
+      </ol>
+    </nav>
+  );
 }
 
 function LoginStatus() {
   const {auth, logout} = useAuth();
 
   if (!auth) {
-    return <div className={css.login}>
-      <b>Not</b> logged in. <Button href={`/`}>To Login</Button>
-    </div>;
+    return (
+      <nav aria-label="Login status" className={css.login}>
+        <b>Not</b> logged in. <Button href={`/`} className={css.link}>To Login</Button>
+      </nav>
+    );
   }
 
-  return <div className={css.login}>
-    Logged in with {auth?.type}.
-    <Button onClick={logout} className={css.button}>Logout</Button>
-  </div>;
+  return (
+    <nav aria-label="Login status" className={css.login}>
+      Logged in with {auth?.type}.
+      <Button onClick={logout} className={css.link}>Logout</Button>
+    </nav>
+  );
 }

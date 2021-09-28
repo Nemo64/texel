@@ -1,5 +1,6 @@
 .base {
   display: inline-block;
+  position: relative;
   padding: calc(var(--line-height) * 0.5);
   margin: var(--padding);
   border: 0;
@@ -12,6 +13,8 @@
   color: var(--primary-text);
   background-color: var(--primary);
   box-shadow: 0 .2em 1em var(--shadow-color);
+  outline: var(--primary-background) solid 0;
+  transition: outline .2s;
 }
 
 .base:disabled, .base.disabled {
@@ -21,8 +24,17 @@
   box-shadow: 0 .1em .5em var(--shadow-color);
 }
 
-.base:hover:not(:disabled):not(.disabled) {
+.base:hover:not(.disabled),
+.base:active:not(.disabled),
+.base.active:not(.disabled) {
+  z-index: 1;
   background-color: var(--primary-highlight);
+}
+
+.base:focus {
+  z-index: 2;
+  background-color: var(--primary-highlight);
+  outline-width: .3em;
 }
 
 .toolbar {

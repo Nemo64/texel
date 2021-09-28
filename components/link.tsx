@@ -2,7 +2,7 @@ import NextLink from "next/link";
 import {AnchorHTMLAttributes, ForwardedRef, forwardRef} from "react";
 
 // <a href> buttons extensions
-interface LinkAttributes extends AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string | undefined;
   prefetch?: boolean;
 }
@@ -15,7 +15,7 @@ interface LinkAttributes extends AnchorHTMLAttributes<HTMLAnchorElement> {
  * - local links will be wrapped by the next.js {@see NextLink} component.
  */
 export const Link = forwardRef(function Link(
-  {href, prefetch, ...props}: LinkAttributes,
+  {href, prefetch, ...props}: LinkProps,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   if (!href?.startsWith('/')) {

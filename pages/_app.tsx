@@ -17,7 +17,7 @@ export default function MyApp({Component, pageProps}: AppProps) {
   return <>
     <Head>
       <title>Texel Editor</title>
-      <meta name="viewport" content="initial-scale=1.0, width=device-width"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
       <meta property="og:site_name" content="Texel editor"/>
     </Head>
     <div className={css.main}>
@@ -48,5 +48,4 @@ export default function MyApp({Component, pageProps}: AppProps) {
 function updateScrollWidth() {
   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
   document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-
 }

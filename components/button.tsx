@@ -1,20 +1,22 @@
 import classNames from "classnames";
-import {AnchorHTMLAttributes, ButtonHTMLAttributes, ForwardedRef, forwardRef, HTMLAttributes, MouseEvent, ReactElement, useState} from "react";
+import {ButtonHTMLAttributes, ForwardedRef, forwardRef, HTMLAttributes, MouseEvent, ReactElement, useState} from "react";
 import css from "./button.module.css";
-import {Link} from "./link";
+import {Link, LinkProps} from "./link";
 
 // <a href> buttons extensions
-interface LinkAttributes extends AnchorHTMLAttributes<HTMLAnchorElement> {
-  href: string;
+export interface LinkAttributes extends LinkProps {
+  href: string; // enforce href for identification
+
   onClick?: (e: MouseEvent<HTMLAnchorElement>) => Promise<void> | void,
-  prefetch?: boolean;
-  disabled?: boolean;
+  disabled?: boolean; // fixates disabled style
+  active?: boolean; // fixates hover style
 }
 
 // <button> buttons extensions
-interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement> {
   onClick: (e: MouseEvent<HTMLButtonElement>) => Promise<void> | void,
-  disabled?: boolean;
+  disabled?: boolean; // fixates disabled attribute and style
+  active?: boolean; // fixates hover style
 }
 
 /**
@@ -31,12 +33,12 @@ interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement> {
  * Don't use this for inline links, use {@see Link} instead.
  */
 export const Button = forwardRef(function Button(
-  {onClick, className, ...props}: LinkAttributes | ButtonAttributes,
+  {onClick, disabled, active, className, ...props}: LinkAttributes | ButtonAttributes,
   ref: ForwardedRef<HTMLAnchorElement> | ForwardedRef<HTMLButtonElement>,
 ): ReactElement {
 
   const [tmpDisabled, setTmpDisabled] = useState(false);
-  const disabled = props.disabled || tmpDisabled;
+  const isDisabled = disabled || tmpDisabled;
 
   // if onClick returns a promise, then disable the button until the promise resolves
   if (onClick !== undefined) {
@@ -52,25 +54,30 @@ export const Button = forwardRef(function Button(
     };
   }
 
+  const classes = classNames(css.base, className, {
+    [css.active]: active,
+    [css.disabled]: isDisabled,
+  });
+
   if ("href" in props) {
     return (
-      <Link role="button"
+      <Link {...props}
+            role={props.role ?? "button"}
             ref={ref as ForwardedRef<HTMLAnchorElement>}
-            {...props}
-            prefetch={props.prefetch ?? !disabled}
-            href={disabled ? undefined : props.href}
-            onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
-            className={classNames(css.base, disabled && css.disabled, className)}
-            aria-disabled={disabled || undefined}/>
+            prefetch={props.prefetch ?? !isDisabled}
+            href={isDisabled ? undefined : props.href}
+            onClick={isDisabled ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
+            className={classes}
+            aria-disabled={isDisabled ? true : undefined}/>
     );
   } else {
     return (
-      <button type="button"
+      <button {...props}
+              type={props.type ?? "button"}
               ref={ref as ForwardedRef<HTMLButtonElement>}
-              {...props}
-              onClick={disabled ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
-              className={classNames(css.base, className)}
-              disabled={disabled || undefined}/>
+              onClick={isDisabled ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
+              className={classes}
+              disabled={isDisabled ? true : undefined}/>
     );
   }
 });
