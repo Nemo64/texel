@@ -51,6 +51,7 @@ export default function AuthBitbucket() {
   return <>
     <Head>
       <title>Login to bitbucket</title>
+      <meta name="robots" content="noindex, nofollow"/>
       <link rel="dns-prefetch" href="https://bitbucket.org"/>
       <link rel="dns-prefetch" href="https://api.bitbucket.org"/>
     </Head>
