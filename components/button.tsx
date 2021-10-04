@@ -10,13 +10,15 @@ export interface LinkAttributes extends LinkProps {
   onClick?: (e: MouseEvent<HTMLAnchorElement>) => Promise<void> | void,
   disabled?: boolean; // fixates disabled style
   active?: boolean; // fixates hover style
+  flat?: boolean; // removes margins
 }
 
 // <button> buttons extensions
 export interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement> {
-  onClick: (e: MouseEvent<HTMLButtonElement>) => Promise<void> | void,
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => Promise<void> | void,
   disabled?: boolean; // fixates disabled attribute and style
   active?: boolean; // fixates hover style
+  flat?: boolean; // removes margins
 }
 
 /**
@@ -33,12 +35,12 @@ export interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement
  * Don't use this for inline links, use {@see Link} instead.
  */
 export const Button = forwardRef(function Button(
-  {onClick, disabled, active, className, ...props}: LinkAttributes | ButtonAttributes,
+  {onClick, disabled, active, flat, className, ...props}: LinkAttributes | ButtonAttributes,
   ref: ForwardedRef<HTMLAnchorElement> | ForwardedRef<HTMLButtonElement>,
 ): ReactElement {
 
-  const [tmpDisabled, setTmpDisabled] = useState(false);
-  const isDisabled = disabled || tmpDisabled;
+  const [busy, setBusy] = useState(false);
+  const disabledOrBusy = disabled || busy;
 
   // if onClick returns a promise, then disable the button until the promise resolves
   if (onClick !== undefined) {
@@ -46,38 +48,42 @@ export const Button = forwardRef(function Button(
     onClick = (event: any) => {
       const promise = originalClickHandler(event);
       if (promise && "finally" in promise) {
-        setTmpDisabled(true);
+        setBusy(true);
         promise.finally(() => {
-          setTmpDisabled(false);
+          setBusy(false);
         });
       }
     };
   }
 
-  const classes = classNames(css.base, className, {
+  const classes = classNames({
+    [css.base]: true,
     [css.active]: active,
-    [css.disabled]: isDisabled,
-  });
+    [css.disabled]: disabledOrBusy,
+    [css.flat]: flat,
+  }, className);
 
   if ("href" in props) {
     return (
       <Link {...props}
             role={props.role ?? "button"}
             ref={ref as ForwardedRef<HTMLAnchorElement>}
-            prefetch={props.prefetch ?? !isDisabled}
-            href={isDisabled ? undefined : props.href}
-            onClick={isDisabled ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
+            prefetch={props.prefetch ?? !disabledOrBusy}
+            href={disabledOrBusy ? undefined : props.href}
+            onClick={disabledOrBusy ? undefined : onClick as (e: MouseEvent<HTMLAnchorElement>) => void}
             className={classes}
-            aria-disabled={isDisabled ? true : undefined}/>
+            aria-busy={busy ? true : undefined}
+            aria-disabled={disabledOrBusy ? true : undefined}/>
     );
   } else {
     return (
       <button {...props}
               type={props.type ?? "button"}
               ref={ref as ForwardedRef<HTMLButtonElement>}
-              onClick={isDisabled ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
+              onClick={disabledOrBusy ? undefined : onClick as (e: MouseEvent<HTMLButtonElement>) => void}
               className={classes}
-              disabled={isDisabled ? true : undefined}/>
+              aria-busy={busy ? true : undefined}
+              disabled={disabledOrBusy ? true : undefined}/>
     );
   }
 });

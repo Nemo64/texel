@@ -1,17 +1,19 @@
 import classNames from "classnames";
 import Head from "next/head";
 import {useRouter} from "next/router";
-import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, useLayoutEffect, useRef, useState} from "react";
+import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState} from "react";
 import {toast} from "react-toastify";
 import {Button, Toolbar} from "../../components/button";
 import {LanguageName, LocaleSelect} from "../../components/locale";
 import {Modal} from "../../components/modal";
 import {Navbar} from "../../components/navbar";
+import {Progress} from "../../components/progress";
 import {useAuthOrRedirect} from "../../src/auth";
 import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
 import {useBooleanState} from "../../src/hooks";
 import {useProjectChange, useProjectContent} from "../../src/loader";
-import {groupBy, sortFn, uniqueFn} from "../../src/util";
+import {getLanguageName} from "../../src/locale";
+import {groupBy, sortFn} from "../../src/util";
 import css from "./table.module.css";
 
 export default function ProjectTable() {
@@ -21,7 +23,6 @@ export default function ProjectTable() {
   const {project, texels, setTexels, loading, isValidating, error} = useProjectContent(auth, projectId);
   const {changes, setChanges} = useProjectChange(auth, projectId);
 
-  const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
   const [search, setSearch] = useState('');
 
   if (!auth || !projectId || loading || !project) {
@@ -38,14 +39,8 @@ export default function ProjectTable() {
 
   const filteredTexels = texels
     .filter(texel => texel.key.includes(search) || texel.value?.includes(search));
-
   const domains = groupBy(filteredTexels, texel => texel.domain ?? '')
     .sort(sortFn(([domain]) => domain));
-
-  const locales = texels.map(texel => texel.locale)
-    .concat(additionalLocales)
-    .filter(uniqueFn())
-    .sort();
 
   return <>
     <Head>
@@ -54,48 +49,121 @@ export default function ProjectTable() {
     </Head>
     <Navbar project={project} onSearch={setSearch}/>
 
-    {domains.map(([domain, texels]) => (
-      <table key={domain} className={css.table}>
-        <thead>
-        <tr className={css.header}>
-          <th className={css.side}>
-            {domain}
-          </th>
-          {locales.map(locale => (
-            <th key={locale}>
-              <LanguageName locale={locale}/>
-            </th>
-          ))}
-          <th>
-            <LocaleSelect placeholder="Add locale" disabledLocales={locales} onChange={(e) => {
-              setAdditionalLocales([...additionalLocales, e.target.value]);
-              e.target.value = '';
-            }}/>
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-        {groupBy(texels, texel => texel.key)
-          .sort(sortFn(([key]) => key))
-          .map(([key, texels]) => (
-            <tr key={key}>
-              <th className={css.side}>
-                <Key value={key}/>
-              </th>
-              {locales.map(locale => {
-                const id: TexelId = {domain, key, locale};
-                const texel = texels.find(texel => sameTexelId(texel, id));
-                const change = changes.find(change => sameTexelId(change, id));
-                return <Column key={locale} {...{texel, change, id, setChanges}}/>;
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    {domains.map(([domain, filteredTexels]) => (
+      <Table key={domain}
+             domain={domain}
+             texels={texels}
+             filteredTexels={filteredTexels}
+             changes={changes}
+             setChanges={setChanges}/>
     ))}
 
     <TableToolbar changes={changes} setChanges={setChanges} setTexels={setTexels}/>
   </>;
+}
+
+function Table({domain, texels, filteredTexels, changes, setChanges}: { domain: string, texels: Texel[], filteredTexels: Texel[], changes: Texel[], setChanges: (changes: Texel[]) => void }) {
+  const [isOpen, toggleOpen, setOpen] = useBooleanState(false);
+  const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
+
+  const localesSet = new Set<string>();
+  texels.forEach(texel => localesSet.add(texel.locale));
+  changes.forEach(texel => localesSet.add(texel.locale));
+
+  const optionalLocales = additionalLocales.filter(locale => !localesSet.has(locale));
+  additionalLocales.forEach(locale => localesSet.add(locale));
+
+  const locales = Array.from(localesSet).sort();
+  const keys = new Set(filteredTexels.map(texel => texel.key).sort());
+
+  return (
+    <table key={domain} className={css.table}>
+      <thead>
+      <tr className={css.header}
+          onClick={e => (e.target as HTMLElement)?.closest('button, select, input') === null && toggleOpen()}>
+        <th className={css.side}>
+          <div className={css.flexBlock}>
+            <Button onClick={toggleOpen}
+                    flat={true}
+                    className={css.blockLeft}
+                    aria-label={isOpen ? `Hide ${domain} content` : `Show ${domain} content`}
+                    aria-expanded={isOpen}>
+              {isOpen ? '-' : '+'}
+            </Button>
+            <div>
+              {domain.replace(/[/.]/g, '\u200B$&').replace(/\.[^.]+$/, '')}
+            </div>
+          </div>
+        </th>
+        {locales.map(locale => (
+          <th key={locale}>
+            {optionalLocales.includes(locale) && (
+              <Button
+                onClick={() => setAdditionalLocales(additionalLocales.filter(l => l !== locale))}
+                flat={true}
+                className={css.blockLeft}
+                aria-label={`Delete ${getLanguageName(locale)}`}>
+                {'-'}
+              </Button>
+            )}
+            <LanguageName locale={locale}/>
+            {' '}<Progress items={filteredTexels.filter(texel => texel.locale === locale).length}
+                           total={keys.size}/>
+          </th>
+        ))}
+        <th>
+          <LocaleSelect placeholder="Add locale"
+                        disabledLocales={locales}
+                        className={css.block}
+                        onChange={(e) => {
+                          setAdditionalLocales([...additionalLocales, e.target.value]);
+                          setOpen(true);
+                          e.target.value = '';
+                        }}/>
+        </th>
+      </tr>
+      </thead>
+      {isOpen && (
+        <tbody>
+        {Array.from(keys).map(key => (
+          <tr key={key}>
+            <th className={css.side}>
+              <Key value={key}/>
+            </th>
+            {locales.map(locale => {
+              const id: TexelId = {domain, key, locale};
+              const texel = texels.find(texel => sameTexelId(texel, id));
+              const change = changes.find(change => sameTexelId(change, id));
+
+              const changeHandler = async (newValue: string) => {
+                const oldValue = texel?.value ?? '';
+                const value = newValue !== oldValue ? newValue : undefined;
+                setChanges([{domain, key, locale, value}]);
+              };
+
+              const className = classNames({
+                [css.missing]: !texel || !texel.value,
+                [css.changed]: change && change?.value !== texel?.value,
+              });
+
+              return (
+                // <td></td>
+                <Editor element="td"
+                        key={locale}
+                        className={className}
+                        defaultValue={change?.value ?? texel?.value ?? ''}
+                        aria-label={`${domain} ${key} ${locale}`}
+                        lang={locale}
+                        title={`original value: ${texel?.value}`}
+                        onData={changeHandler}/>
+              );
+            })}
+          </tr>
+        ))}
+        </tbody>
+      )}
+    </table>
+  );
 }
 
 function TableToolbar({changes, setChanges, setTexels}: { changes: Texel[], setChanges: (changes: Texel[]) => Promise<void>, setTexels: (changes: Texel[]) => Promise<void> }) {
@@ -151,32 +219,6 @@ function TableToolbar({changes, setChanges, setTexels}: { changes: Texel[], setC
   </>;
 }
 
-function Column({id, texel, change, setChanges}: { id: TexelId, texel?: Texel, change?: Texel, setChanges: (updates: Texel[]) => void }) {
-  const changeHandler = async (newValue: string) => {
-    const oldValue = texel?.value ?? '';
-    const value = newValue !== oldValue ? newValue : undefined;
-    setChanges([{
-      domain: id.domain,
-      key: id.key,
-      locale: id.locale,
-      value,
-    }]);
-  };
-
-  const className = classNames({
-    [css.missing]: !texel || !texel.value,
-    [css.changed]: change && change?.value !== texel?.value,
-  });
-
-  return <td className={className}>
-    <Editor defaultValue={change?.value ?? texel?.value ?? ''}
-            aria-label={`${id.domain} ${id.key} ${id.locale}`}
-            lang={id.locale}
-            title={`original value: ${texel?.value}`}
-            onData={changeHandler}/>
-  </td>;
-}
-
 function ChangeOverview({changes}: { changes: Texel[] }) {
   const byDomain = groupBy(changes, change => change.domain);
 
@@ -213,12 +255,13 @@ function Key({value}: { value: string }) {
 }
 
 interface ValueProps extends HTMLAttributes<HTMLElement> {
+  element: ReactElement["type"];
   onData?: (value: string) => void;
 }
 
 const lastData = new WeakMap<HTMLElement, string>();
 
-function Editor({defaultValue, onData, onBlur, onChange, ...props}: ValueProps) {
+function Editor({element = 'div', defaultValue, onData, onBlur, onChange, ...props}: ValueProps) {
   const objectRef = useRef() as MutableRefObject<HTMLDivElement>;
   useLayoutEffect(() => {
     if (objectRef.current.textContent !== String(defaultValue)) {
@@ -238,13 +281,13 @@ function Editor({defaultValue, onData, onBlur, onChange, ...props}: ValueProps) 
     }
   };
 
+  const Element = element;
   return (
-    <div {...props}
-         ref={objectRef}
-         className={css.editor}
-         contentEditable={true}
-         role="textbox"
-         aria-multiline="true"
-         onBlur={blurHandler}/>
+    <Element {...props}
+             ref={objectRef}
+             contentEditable={true}
+             role="textbox"
+             aria-multiline="true"
+             onBlur={blurHandler}/>
   );
 }

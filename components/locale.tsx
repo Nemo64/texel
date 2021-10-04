@@ -56,5 +56,5 @@ export function LanguageName({locale}: { locale: string }) {
     return <>{info.name}</>;
   }
 
-  return <>{info.name}&nbsp;/&nbsp;<span lang={info.code}>{info.nativeName}</span></>;
+  return <>{info.name} /&nbsp;<span lang={info.code}>{info.nativeName}</span></>;
 }

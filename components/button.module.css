@@ -4,6 +4,8 @@
   padding: calc(var(--line-height) * 0.5);
   margin: var(--padding);
   border: 0;
+  min-width: calc(var(--line-height) + var(--padding) * 2);
+  min-height: calc(var(--line-height) + var(--padding) * 2);
 
   text-align: center;
   text-decoration: none !important;
@@ -53,7 +55,8 @@
   backdrop-filter: blur(.1rem) saturate(200%);
 }
 
-.toolbar > .base {
+.toolbar > .base,
+.flat {
   margin: 0;
   box-shadow: none;
 }

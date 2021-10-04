@@ -24,9 +24,5 @@ export function getLanguageName(locale: string): string {
     return `[unknown locale ${JSON.stringify(locale)}]`;
   }
 
-  if (info.name === info.nativeName) {
-    return info.name;
-  }
-
-  return `${info.name} / ${info.nativeName}`;
+  return info.name;
 }

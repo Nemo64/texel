@@ -29,12 +29,42 @@
   background-color: var(--background);
 }
 
+/* @formatter:off */
+.table tbody tr:nth-child(1) {animation-delay: 10ms}
+.table tbody tr:nth-child(2) {animation-delay: 20ms}
+.table tbody tr:nth-child(3) {animation-delay: 30ms}
+.table tbody tr:nth-child(4) {animation-delay: 40ms}
+.table tbody tr:nth-child(5) {animation-delay: 50ms}
+.table tbody tr {animation: moveIn 200ms both  60ms}
+/* @formatter:on */
+
+@keyframes moveIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-1em);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes moveIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+}
+
 tr.header {
   position: sticky;
   top: var(--sticky-top);
   z-index: var(--z-index-sticky);
-  background-color: var(--primary);
-  color: var(--primary-text);
+  background-color: var(--background);
 }
 
 tr.header th {
@@ -106,14 +136,23 @@ tbody th.side:hover {
   background-color: var(--info-background);
 }
 
-.table td select, .table th select,
-.table td .editor, .table th .editor {
+.flexBlock {
   margin: calc(var(--padding) * -1);
-  border: none;
+  width: calc(100% + var(--padding) * 2);
   padding: var(--padding);
-  background-color: transparent;
+  display: flex;
 }
 
-.table td .editor, .table th .editor {
-  height: 100%;
+.block {
+  margin: calc(var(--padding) * -1);
+  width: calc(100% + var(--padding) * 2);
+  padding: var(--padding);
+  border-width: 0;
 }
+
+.blockLeft {
+  margin: calc(var(--padding) * -1) var(--padding) calc(var(--padding) * -1) calc(var(--padding) * -1);
+  padding: var(--padding);
+  border-width: 0 1px 0 0;
+}
+
