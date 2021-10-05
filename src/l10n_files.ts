@@ -130,7 +130,8 @@ function* flattenKeys(domain: string, locale: string, data: RecursiveStrings, ke
     throw new Error(msg`Can't recursively iterate keys of ${data} at path ${keys}`);
   }
 
-  for (const [key, value] of Object.entries(data)) {
+  for (const key of Object.keys(data).sort()) {
+    const value = data[key];
     if (typeof value === 'object' && value !== null) {
       const iterator = flattenKeys(domain, locale, value, [...keys, key]);
       // @ts-ignore iterators work

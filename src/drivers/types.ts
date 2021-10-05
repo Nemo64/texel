@@ -82,11 +82,14 @@ export interface TexelDriver {
 
   /**
    * List all directories.
+   * The order is important.
+   * Try to use alphabetical order but keep the most important entries (like main branches) on top.
    */
   projects(parent?: Project["id"]): Promise<Project[]>;
 
   /**
    * List all TexelGroups in the provided branch.
+   * The order is important. Try to use alphabetical order.
    */
   list(id: Project["id"]): Promise<Texel[]>;
 

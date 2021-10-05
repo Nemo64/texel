@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import Head from "next/head";
 import {useRouter} from "next/router";
-import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState} from "react";
+import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, ReactElement, useEffect, useLayoutEffect, useRef, useState} from "react";
 import {toast} from "react-toastify";
 import {Button, Toolbar} from "../../components/button";
 import {LanguageName, LocaleSelect} from "../../components/locale";
@@ -10,10 +10,10 @@ import {Navbar} from "../../components/navbar";
 import {Progress} from "../../components/progress";
 import {useAuthOrRedirect} from "../../src/auth";
 import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
-import {useBooleanState} from "../../src/hooks";
+import {useBooleanState, useSearch} from "../../src/hooks";
 import {useProjectChange, useProjectContent} from "../../src/loader";
 import {getLanguageName} from "../../src/locale";
-import {groupBy, sortFn} from "../../src/util";
+import {groupBy} from "../../src/util";
 import css from "./table.module.css";
 
 export default function ProjectTable() {
@@ -24,6 +24,8 @@ export default function ProjectTable() {
   const {changes, setChanges} = useProjectChange(auth, projectId);
 
   const [search, setSearch] = useState('');
+  const filteredTexels = useSearch(texels, search, texel => `${texel.key} ${texel.value}`);
+  const domains = groupBy(filteredTexels, texel => texel.domain ?? '');
 
   if (!auth || !projectId || loading || !project) {
     return <>
@@ -37,11 +39,6 @@ export default function ProjectTable() {
     </>;
   }
 
-  const filteredTexels = texels
-    .filter(texel => texel.key.includes(search) || texel.value?.includes(search));
-  const domains = groupBy(filteredTexels, texel => texel.domain ?? '')
-    .sort(sortFn(([domain]) => domain));
-
   return <>
     <Head>
       <title>{project.name}</title>
@@ -54,6 +51,7 @@ export default function ProjectTable() {
              domain={domain}
              texels={texels}
              filteredTexels={filteredTexels}
+             search={search}
              changes={changes}
              setChanges={setChanges}/>
     ))}
@@ -62,9 +60,12 @@ export default function ProjectTable() {
   </>;
 }
 
-function Table({domain, texels, filteredTexels, changes, setChanges}: { domain: string, texels: Texel[], filteredTexels: Texel[], changes: Texel[], setChanges: (changes: Texel[]) => void }) {
+function Table({domain, texels, filteredTexels, search, changes, setChanges}: { domain: string, texels: Texel[], filteredTexels: Texel[], search: string, changes: Texel[], setChanges: (changes: Texel[]) => void }) {
   const [isOpen, toggleOpen, setOpen] = useBooleanState(false);
   const [additionalLocales, setAdditionalLocales] = useState([] as string[]);
+
+  // open table when the filtered list changes
+  useEffect(() => setOpen(search.length > 0), [search, setOpen]);
 
   const localesSet = new Set<string>();
   texels.forEach(texel => localesSet.add(texel.locale));
@@ -74,10 +75,10 @@ function Table({domain, texels, filteredTexels, changes, setChanges}: { domain: 
   additionalLocales.forEach(locale => localesSet.add(locale));
 
   const locales = Array.from(localesSet).sort();
-  const keys = new Set(filteredTexels.map(texel => texel.key).sort());
+  const keys = new Set(filteredTexels.map(texel => texel.key));
 
   return (
-    <table key={domain} className={css.table}>
+    <table id={domain} className={css.table}>
       <thead>
       <tr className={css.header}
           onClick={e => (e.target as HTMLElement)?.closest('button, select, input') === null && toggleOpen()}>
@@ -91,7 +92,7 @@ function Table({domain, texels, filteredTexels, changes, setChanges}: { domain: 
               {isOpen ? '-' : '+'}
             </Button>
             <div>
-              {domain.replace(/[/.]/g, '\u200B$&').replace(/\.[^.]+$/, '')}
+              {domain.replace(/\//g, '\u200B$&').replace(/\.[^.]+$/, '')}
             </div>
           </div>
         </th>
