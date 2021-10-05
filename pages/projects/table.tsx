@@ -1,4 +1,6 @@
 import classNames from "classnames";
+import FileSaver from "file-saver";
+import JSZip from "jszip";
 import Head from "next/head";
 import {useRouter} from "next/router";
 import {FocusEvent, Fragment, HTMLAttributes, MutableRefObject, ReactElement, useEffect, useLayoutEffect, useRef, useState} from "react";
@@ -9,8 +11,9 @@ import {Modal} from "../../components/modal";
 import {Navbar} from "../../components/navbar";
 import {Progress} from "../../components/progress";
 import {useAuthOrRedirect} from "../../src/auth";
-import {sameTexelId, Texel, TexelId} from "../../src/drivers/types";
+import {sameTexelId, Texel, TexelId, uniqueTexels} from "../../src/drivers/types";
 import {useBooleanState, useSearch} from "../../src/hooks";
+import {domainToPath, generateL10nFile} from "../../src/l10n_files";
 import {useProjectChange, useProjectContent} from "../../src/loader";
 import {getLanguageName} from "../../src/locale";
 import {groupBy} from "../../src/util";
@@ -56,7 +59,7 @@ export default function ProjectTable() {
              setChanges={setChanges}/>
     ))}
 
-    <TableToolbar changes={changes} setChanges={setChanges} setTexels={setTexels}/>
+    <TableToolbar changes={changes} setChanges={setChanges} texels={texels} setTexels={setTexels}/>
   </>;
 }
 
@@ -179,9 +182,31 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
   );
 }
 
-function TableToolbar({changes, setChanges, setTexels}: { changes: Texel[], setChanges: (changes: Texel[]) => Promise<void>, setTexels: (changes: Texel[]) => Promise<void> }) {
+function TableToolbar({changes, setChanges, texels, setTexels}: { changes: Texel[], setChanges: (changes: Texel[]) => Promise<void>, texels: Texel[], setTexels: (changes: Texel[]) => Promise<void> }) {
   const [commitDialog, toggleCommitDialog] = useBooleanState(false);
   const [resetDialog, toggleResetDialog] = useBooleanState(false);
+
+  const saveChanges = async () => {
+    const zip = new JSZip();
+    groupBy(changes, change => domainToPath(change.domain, change.locale))
+      .forEach(([path, pathChanges]) => {
+        const existingTexels = texels.filter(texel => path === domainToPath(texel.domain, texel.locale));
+        zip.file(path, generateL10nFile(path, uniqueTexels(...existingTexels, ...pathChanges)));
+      });
+    const content = await zip.generateAsync({type: "blob"});
+    FileSaver.saveAs(content, "changes.zip");
+  };
+
+  const saveAll = async () => {
+    const zip = new JSZip();
+    const allTexels = uniqueTexels(...texels, ...changes);
+    groupBy(allTexels, texel => domainToPath(texel.domain, texel.locale))
+      .forEach(([path, pathTexels]) => {
+        zip.file(path, generateL10nFile(path, pathTexels));
+      });
+    const content = await zip.generateAsync({type: "blob"});
+    FileSaver.saveAs(content, "all.zip");
+  };
 
   return <>
     <Toolbar>
@@ -190,6 +215,12 @@ function TableToolbar({changes, setChanges, setTexels}: { changes: Texel[], setC
       </Button>
       <Button disabled={changes.length === 0} onClick={toggleResetDialog}>
         Reset changes
+      </Button>
+      <Button disabled={changes.length === 0} onClick={saveChanges} variant="secondary">
+        Download changed files
+      </Button>
+      <Button disabled={texels.length === 0} onClick={saveAll} variant="secondary">
+        Download all
       </Button>
     </Toolbar>
 

@@ -16,7 +16,7 @@
   background-color: var(--primary);
   box-shadow: 0 .2em 1em var(--shadow-color);
   outline: var(--primary-background) solid 0;
-  transition: outline .2s;
+  transition: outline .2s, background-color .15s;
 }
 
 .base:disabled, .base.disabled {
@@ -37,6 +37,13 @@
   z-index: 2;
   background-color: var(--primary-highlight);
   outline-width: .3em;
+}
+
+.secondary {
+  --primary: var(--background);
+  --primary-background: var(--background);
+  --primary-text: var(--text-color);
+  --primary-highlight: var(--shadow-color);
 }
 
 .toolbar {

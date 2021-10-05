@@ -3,6 +3,8 @@ import {ButtonHTMLAttributes, ForwardedRef, forwardRef, HTMLAttributes, MouseEve
 import css from "./button.module.css";
 import {Link, LinkProps} from "./link";
 
+type Variants = "primary" | "secondary";
+
 // <a href> buttons extensions
 export interface LinkAttributes extends LinkProps {
   href: string; // enforce href for identification
@@ -11,6 +13,7 @@ export interface LinkAttributes extends LinkProps {
   disabled?: boolean; // fixates disabled style
   active?: boolean; // fixates hover style
   flat?: boolean; // removes margins
+  variant?: Variants;
 }
 
 // <button> buttons extensions
@@ -19,6 +22,7 @@ export interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement
   disabled?: boolean; // fixates disabled attribute and style
   active?: boolean; // fixates hover style
   flat?: boolean; // removes margins
+  variant?: Variants;
 }
 
 /**
@@ -35,7 +39,7 @@ export interface ButtonAttributes extends ButtonHTMLAttributes<HTMLButtonElement
  * Don't use this for inline links, use {@see Link} instead.
  */
 export const Button = forwardRef(function Button(
-  {onClick, disabled, active, flat, className, ...props}: LinkAttributes | ButtonAttributes,
+  {onClick, disabled, active, flat, className, variant, ...props}: LinkAttributes | ButtonAttributes,
   ref: ForwardedRef<HTMLAnchorElement> | ForwardedRef<HTMLButtonElement>,
 ): ReactElement {
 
@@ -61,6 +65,7 @@ export const Button = forwardRef(function Button(
     [css.active]: active,
     [css.disabled]: disabledOrBusy,
     [css.flat]: flat,
+    [css.secondary]: variant === 'secondary',
   }, className);
 
   if ("href" in props) {
