@@ -49,10 +49,10 @@ export default function ProjectTable() {
     {domains.map(([domain, filteredTexels]) => (
       <Table key={domain}
              domain={domain}
-             texels={texels}
+             texels={texels.filter(texel => texel.domain === domain)}
              filteredTexels={filteredTexels}
              search={search}
-             changes={changes}
+             changes={changes.filter(texel => texel.domain === domain)}
              setChanges={setChanges}/>
     ))}
 
@@ -80,8 +80,12 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
   return (
     <table id={domain} className={css.table}>
       <thead>
-      <tr className={css.header}
-          onClick={e => (e.target as HTMLElement)?.closest('button, select, input') === null && toggleOpen()}>
+      <tr className={css.header} onDoubleClick={e => {
+        if ((e.target as HTMLElement)?.closest('button, select, input') === null) {
+          e.preventDefault();
+          toggleOpen();
+        }
+      }}>
         <th className={css.side}>
           <div className={css.flexBlock}>
             <Button onClick={toggleOpen}
@@ -96,22 +100,30 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
             </div>
           </div>
         </th>
-        {locales.map(locale => (
-          <th key={locale}>
-            {optionalLocales.includes(locale) && (
-              <Button
-                onClick={() => setAdditionalLocales(additionalLocales.filter(l => l !== locale))}
-                flat={true}
-                className={css.blockLeft}
-                aria-label={`Delete ${getLanguageName(locale)}`}>
-                {'-'}
-              </Button>
-            )}
-            <LanguageName locale={locale}/>
-            {' '}<Progress items={filteredTexels.filter(texel => texel.locale === locale).length}
-                           total={keys.size}/>
-          </th>
-        ))}
+        {locales.map(locale => {
+          const items = texels.filter(texel => texel.locale === locale);
+          const changedItems = changes.filter(texel => texel.locale === locale);
+
+          return (
+            <th key={locale}>
+              {optionalLocales.includes(locale) && (
+                <Button flat={true}
+                        className={css.blockLeft}
+                        aria-label={`Delete ${getLanguageName(locale)}`}
+                        onClick={() => setAdditionalLocales(additionalLocales.filter(l => l !== locale))}>
+                  {'-'}
+                </Button>
+              )}
+              <LanguageName locale={locale}/>
+              {' '}<Progress items={items.length} total={keys.size}/>
+              {changedItems.length > 0 && (
+                <span className={css.changedIndicator}>
+                  {' '}<Progress items={changedItems.length} total={keys.size}/> changed
+                </span>
+              )}
+            </th>
+          );
+        })}
         <th>
           <LocaleSelect placeholder="Add locale"
                         disabledLocales={locales}

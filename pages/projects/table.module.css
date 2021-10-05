@@ -134,6 +134,10 @@ tbody th.side:hover {
   background-color: var(--info-background);
 }
 
+.changedIndicator {
+  color: var(--info);
+}
+
 .flexBlock {
   margin: calc(var(--padding) * -1);
   width: calc(100% + var(--padding) * 2);
