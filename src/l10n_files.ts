@@ -1,7 +1,7 @@
 import yaml from "js-yaml";
 import {Texel} from "./drivers/types";
 import {getLocales} from "./locale";
-import {groupBy, msg, wrapError} from "./util";
+import {groupBy, msg, sortFn, wrapError} from "./util";
 
 /**
  * These are file extensions that could be translation files.
@@ -145,12 +145,13 @@ function* flattenKeys(domain: string, locale: string, data: RecursiveStrings, ke
 function nestKeys(texels: Texel[], previousKeys: string[] = []): RecursiveStrings {
   const result = {} as RecursiveStrings;
 
-  for (const [nextKey, values] of groupBy(texels, texel => texel.key.split('.')[previousKeys.length])) {
+  const valuesByKey = groupBy(texels, texel => texel.key.split('.')[previousKeys.length]);
+  for (const [nextKey, values] of valuesByKey.sort(sortFn(([key]) => key))) {
     const entireKey = [...previousKeys, nextKey];
     if (entireKey.join('.') === values[0].key) {
       result[nextKey] = values[0].value ?? '';
     } else {
-      result[nextKey] = nestKeys(values, entireKey)
+      result[nextKey] = nestKeys(values, entireKey);
     }
   }
 

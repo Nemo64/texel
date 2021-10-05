@@ -22,12 +22,12 @@ const file_texel = [
   {
     path: (format: string) => `en/common.${format}`,
     texels: (format: string) => [
-      {domain: `common.${format}.dir`, key: 'foo', locale: 'en', value: 'commit'},
       {domain: `common.${format}.dir`, key: 'bar.baz', locale: 'en', value: 'commit'},
+      {domain: `common.${format}.dir`, key: 'foo', locale: 'en', value: 'commit'},
     ],
     formats: {
-      json: `{\n  "foo": "commit",\n  "bar": {\n    "baz": "commit"\n  }\n}`,
-      yaml: `foo: commit\nbar:\n  baz: commit\n`,
+      json: `{\n  "bar": {\n    "baz": "commit"\n  },\n  "foo": "commit"\n}`,
+      yaml: `bar:\n  baz: commit\nfoo: commit\n`,
     },
   },
 ];
