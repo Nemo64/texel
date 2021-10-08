@@ -95,6 +95,7 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
                     flat={true}
                     className={css.blockLeft}
                     aria-label={isOpen ? `Hide ${domain} content` : `Show ${domain} content`}
+                    aria-controls={isOpen ? `${domain}-tbody` : undefined}
                     aria-expanded={isOpen}>
               {isOpen ? '-' : '+'}
             </Button>
@@ -140,7 +141,7 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
       </tr>
       </thead>
       {isOpen && (
-        <tbody>
+        <tbody id={`${domain}-tbody`}>
         {Array.from(keys).map(key => (
           <tr key={key}>
             <th className={css.side}>
