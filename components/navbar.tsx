@@ -34,20 +34,20 @@ function ProjectBreadcrumb({project, onSearch}: NavbarProps) {
       <ol>
         <li>
           <Button className={css.link} href={`/projects`} aria-label="Root project selection">
-            Texel editor
+            <span translate="no">Texel editor</span>
           </Button>
         </li>
         {project?.parent && (
           <li>
             <Button className={css.link} href={link(project.parent)}>
-              {project.parent.name}
+              <span translate="no">{project.parent.name}</span>
             </Button>
           </li>
         )}
         {project && (
           <li>
             <Button className={css.link} href={link(project)} active={true}>
-              {project.name}
+              <span translate="no">{project.name}</span>
             </Button>
           </li>
         )}

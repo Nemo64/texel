@@ -57,14 +57,14 @@ function ProjectItem({project, auth}: { project: Project, auth: Auth | undefined
   if (!project.leaf) {
     return (
       <Link href={`/projects?id=${encodeURIComponent(project.id)}`} className={css.item}>
-        <span className={css.name}>{project.name}</span>
+        <span className={css.name} translate="no">{project.name}</span>
       </Link>
     );
   }
 
   return (
     <Link href={`/projects/table?id=${encodeURIComponent(project.id)}`} className={css.item}>
-      <span className={css.name}>{project.name}</span>
+      <span className={css.name} translate="no">{project.name}</span>
       <ProjectLeafDetails project={project} auth={auth}/>
     </Link>
   );

@@ -99,7 +99,7 @@ function Table({domain, texels, filteredTexels, search, changes, setChanges}: { 
                     aria-expanded={isOpen}>
               {isOpen ? '-' : '+'}
             </Button>
-            <div>
+            <div translate="no">
               {domain.replace(/\//g, '\u200B$&').replace(/\.[^.]+$/, '')}
             </div>
           </div>
@@ -285,7 +285,7 @@ function ChangeOverview({changes}: { changes: Texel[] }) {
 function Key({value}: { value: string }) {
   const position = value.lastIndexOf('.');
   if (position < 0 || value.includes(' ')) {
-    return <div className={css.key} title={value}>
+    return <div className={css.key} title={value} translate="no">
       <span className={css.key1}>{value}</span>
     </div>;
   }
@@ -293,7 +293,7 @@ function Key({value}: { value: string }) {
   const prefix = value.slice(0, position);
   const suffix = value.slice(position);
 
-  return <div className={css.key} title={value}>
+  return <div className={css.key} title={value} translate="no">
     <span className={css.key1}>{prefix}</span>
     <span className={css.key2}>{suffix}</span>
   </div>;
@@ -333,6 +333,7 @@ function Editor({element = 'div', defaultValue, onData, onBlur, onChange, ...pro
              contentEditable={true}
              role="textbox"
              aria-multiline="true"
+             translate="no"
              onBlur={blurHandler}/>
   );
 }
