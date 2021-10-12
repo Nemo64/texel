@@ -42,7 +42,7 @@ export function useSearch<T>(items: T[], query: string, accessor: (v: T) => stri
     const index = new Index({
       preset: "score",
       charset: "latin:advanced",
-      tokenize: "forward",
+      tokenize: "reverse",
     });
 
     for (let i = 0; i < items.length; ++i) {
