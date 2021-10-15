@@ -10,6 +10,12 @@ import {groupBy, msg, sortFn, wrapError} from "./util";
 export const L10N_FILE_EXTENSIONS = ['yml', 'yaml', 'json'];
 
 /**
+ * This indicator tells how deep to scan any project for translation files.
+ * Further directories may be ignored, if it helps performance.
+ */
+export const L10N_DIRECTORY_DEPTH = 8;
+
+/**
  * Determines based on a file path if a file is a translation file.
  */
 export function isL10nFile(path: string): boolean {

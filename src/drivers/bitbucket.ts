@@ -173,7 +173,7 @@ export class BitbucketDriver implements TexelDriver {
     return pager(
       `https://api.bitbucket.org/2.0/repositories/${repositoryId}/src/${commitHash}/${path}?${new URLSearchParams({
         q: `type = "commit_file" AND (${L10N_FILE_EXTENSIONS.map(ext => `path ~ ".${ext}"`).join(' OR ')})`,
-        max_depth: '8',
+        max_depth: String(L10N_DIRECTORY_DEPTH),
         pagelen: '100',
         fields: `next,${TREE_ENTRY_FIELDS.map(field => `values.${field}`).join(',')}`,
         access_token: this.token,
