@@ -55,13 +55,21 @@ export function useAuthOrRedirect() {
   return object;
 }
 
+const drivers = new WeakMap<Auth, TexelDriver>();
+
 export function getDriver(auth: Auth): TexelDriver {
-  switch (auth.type) {
-    case "bitbucket":
-      return new BitbucketDriver(auth.token);
-    case "directory":
-      return new DirectoryDriver(auth.token);
-    default:
-      throw new Error(`There is no driver for ${auth.type}`);
+  if (!drivers.has(auth)) {
+    switch (auth.type) {
+      case "bitbucket":
+        drivers.set(auth, new BitbucketDriver(auth.token));
+        break;
+      case "directory":
+        drivers.set(auth, new DirectoryDriver(auth.token));
+        break;
+      default:
+        throw new Error(`There is no driver for ${auth.type}`);
+    }
   }
+
+  return drivers.get(auth) as TexelDriver;
 }

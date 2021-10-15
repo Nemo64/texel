@@ -1,4 +1,4 @@
-import {domainToPath, generateL10nFile, isL10nFile, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
+import {domainToPath, generateL10nFile, isL10nFile, L10N_DIRECTORY_DEPTH, L10N_FILE_EXTENSIONS, parseL10nFile} from "../l10n_files";
 import {groupBy, msg, wrapError} from "../util";
 import {Project, subtractTexels, Texel, TexelDriver, uniqueTexels} from "./types";
 
@@ -15,6 +15,13 @@ const BRANCH_ID = /^(?<repository>(?<workspace>[^/]+)\/(?<name>[^/]+))\/(?<branc
  * @see https://developer.atlassian.com/bitbucket/api/2/reference/resource/
  */
 export class BitbucketDriver implements TexelDriver {
+
+  // the bitbucket api has limits based on hour
+  // https://support.atlassian.com/bitbucket-cloud/docs/api-request-limits/
+  // so let's only poll every hour ~ basically never
+  public readonly listInterval = 60 * 60 * 1000;
+  public readonly projectInterval = 60 * 60 * 1000;
+
   constructor(
     private readonly token: string,
   ) {

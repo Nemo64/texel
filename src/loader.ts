@@ -1,5 +1,5 @@
 import {useCallback} from "react";
-import useSWR, {mutate, SWRConfiguration} from "swr";
+import useSWR, {mutate} from "swr";
 import {Auth, getDriver} from "./auth";
 import {ChangeDriver} from "./drivers/change";
 import {Project, Texel} from "./drivers/types";
@@ -9,8 +9,23 @@ import {msg} from "./util";
  * Lists all {@see Project}s, optionally within a project.
  */
 export function useProjectListing(auth?: Auth, id?: string) {
-  const args = auth ? [auth, id] : null;
-  const {data, isValidating, error} = useSWR(args, projectList);
+  const args = auth ? [JSON.stringify(auth), id] : null;
+  const interval = auth ? getDriver(auth).listInterval : undefined;
+
+  const {data, isValidating, error} = useSWR(args, {
+    focusThrottleInterval: interval,
+    dedupingInterval: interval,
+    async fetcher(_: string, id?: Project["id"]): Promise<ProjectListing> {
+      const driver = getDriver(auth as Auth);
+
+      const [childProjects, project] = await Promise.all([
+        await driver.projects(id),
+        id ? await driver.project(id) : undefined,
+      ]);
+
+      return {childProjects, project};
+    },
+  });
 
   if (error) {
     console.error('useProjectListing', error);
@@ -30,27 +45,27 @@ interface ProjectListing {
   project?: Project;
 }
 
-const projectList: SWRConfiguration<ProjectListing> = {
-  focusThrottleInterval: 1000 * 60,
-  errorRetryInterval: 1000 * 30,
-  async fetcher(auth: Auth, id?: Project["id"]): Promise<ProjectListing> {
-    const driver = getDriver(auth);
-
-    const [childProjects, project] = await Promise.all([
-      await driver.projects(id),
-      id ? await driver.project(id) : undefined,
-    ]);
-
-    return {childProjects, project};
-  },
-};
-
 /**
  * Reads all {@see Texel}s of a project.
  */
 export function useProjectContent(auth?: Auth, id?: string) {
-  const args = auth && id ? [auth, id] : null;
-  const {data, isValidating, error} = useSWR(args, projectContent);
+  const args = auth && id ? [JSON.stringify(auth), id] : null;
+  const interval = auth ? getDriver(auth).projectInterval : undefined;
+
+  const {data, isValidating, error} = useSWR(args, {
+    focusThrottleInterval: interval,
+    dedupingInterval: interval,
+    async fetcher(_: string, id: Project["id"]): Promise<ProjectContent> {
+      const driver = getDriver(auth as Auth);
+
+      const [project, texels] = await Promise.all([
+        driver.project(id),
+        driver.list(id),
+      ]);
+
+      return {project, texels};
+    },
+  });
 
   if (error) {
     console.error('useProjectContent', error);
@@ -81,28 +96,17 @@ interface ProjectContent {
   texels: Texel[];
 }
 
-const projectContent: SWRConfiguration<ProjectContent> = {
-  focusThrottleInterval: 1000 * 60 * 5,
-  dedupingInterval: 1000 * 60 * 5,
-  errorRetryInterval: 1000 * 30,
-  async fetcher(auth: Auth, id: Project["id"]): Promise<ProjectContent> {
-    const driver = getDriver(auth);
-
-    const [project, texels] = await Promise.all([
-      driver.project(id),
-      driver.list(id),
-    ]);
-
-    return {project, texels};
-  },
-};
-
 /**
  * Read all {@see Texel} changes.
  */
 export function useProjectChange(auth?: Auth, id?: string) {
-  const args = auth && id ? [auth, id, 'changes'] : null;
-  const {data, isValidating, error} = useSWR(args, projectChanges);
+  const args = auth && id ? [auth.type, id] : null;
+  const {data, isValidating, error} = useSWR(args, {
+    async fetcher(type: string, id: Project["id"]): Promise<ProjectChanges> {
+      const driver = new ChangeDriver(type);
+      return await driver.list(id);
+    },
+  });
 
   if (error) {
     console.error('useProjectChange', error);
@@ -127,10 +131,3 @@ export function useProjectChange(auth?: Auth, id?: string) {
 }
 
 type ProjectChanges = Texel[];
-
-const projectChanges: SWRConfiguration<ProjectChanges> = {
-  async fetcher(auth: Auth, id: Project["id"]): Promise<ProjectChanges> {
-    const driver = new ChangeDriver(auth.type);
-    return await driver.list(id);
-  },
-};

@@ -75,6 +75,9 @@ export function subtractTexels(baseTexels: Texel[], subtractTexels: Texel[]): Te
 }
 
 export interface TexelDriver {
+  listInterval?: number;
+  projectInterval?: number;
+
   /**
    * Return the project with the given id
    */
