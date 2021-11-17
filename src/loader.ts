@@ -1,5 +1,5 @@
 import {useCallback} from "react";
-import useSWR, {mutate} from "swr";
+import useSWR from "swr";
 import {Auth, getDriver} from "./auth";
 import {ChangeDriver} from "./drivers/change";
 import {Project, Texel} from "./drivers/types";
@@ -52,7 +52,7 @@ export function useProjectContent(auth?: Auth, id?: string) {
   const args = auth && id ? [JSON.stringify(auth), id] : null;
   const interval = auth ? getDriver(auth).projectInterval : undefined;
 
-  const {data, isValidating, error} = useSWR(args, {
+  const {data, isValidating, error, mutate} = useSWR(args, {
     focusThrottleInterval: interval,
     dedupingInterval: interval,
     async fetcher(_: string, id: Project["id"]): Promise<ProjectContent> {
@@ -78,8 +78,8 @@ export function useProjectContent(auth?: Auth, id?: string) {
 
     const driver = getDriver(auth);
     await driver.update(id, texels);
-    await mutate([auth, id]);
-  }, [auth, id]);
+    await mutate();
+  }, [auth, id, mutate]);
 
   return {
     loading: !data,
@@ -101,7 +101,7 @@ interface ProjectContent {
  */
 export function useProjectChange(auth?: Auth, id?: string) {
   const args = auth && id ? [auth.type, id] : null;
-  const {data, isValidating, error} = useSWR(args, {
+  const {data, isValidating, error, mutate} = useSWR(args, {
     async fetcher(type: string, id: Project["id"]): Promise<ProjectChanges> {
       const driver = new ChangeDriver(type);
       return await driver.list(id);
@@ -119,8 +119,8 @@ export function useProjectChange(auth?: Auth, id?: string) {
 
     const driver = new ChangeDriver(auth.type);
     await driver.update(id, texels);
-    await mutate([auth.type, id]);
-  }, [auth, id]);
+    await mutate();
+  }, [auth, id, mutate]);
 
   return {
     changes: data ?? [],
