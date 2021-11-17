@@ -119,7 +119,7 @@ export function useProjectChange(auth?: Auth, id?: string) {
 
     const driver = new ChangeDriver(auth.type);
     await driver.update(id, texels);
-    await mutate([auth, id, 'changes']);
+    await mutate([auth.type, id]);
   }, [auth, id]);
 
   return {
